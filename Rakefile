@@ -72,6 +72,22 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
 end
 
 #
+# Dependency tasks
+#
+
+desc 'Bundle dependencies'
+task :bundle do
+  opts = %w{prd acp qa tst}.include?(ENV['WCIS_ENV']) ? ' --without=development' : ''
+  output = `bundle check 2>&1`
+  
+  unless $?.to_i == 0
+    puts output
+    stdout_sh "bundle install#{opts} 2>&1"
+    puts
+  end
+end
+
+#
 # Test tasks
 #
 
@@ -79,13 +95,13 @@ desc 'Default: Run tests.'
 task :default => :test
 
 desc 'Run the tests'
-task :test do
+task :test => :bundle do
   tests = Dir.glob('test/**/*_test.rb')
   sh('ruby', '-w', '-e', 'ARGV.dup.each {|test| load test}', *tests)
 end
 
 desc 'Run the benchmarks'
-task :benchmark do
+task :benchmark => :bundle do
   benchmarks = Dir.glob('benchmark/**/*_benchmark.rb')
   sh('ruby', '-w', '-e', 'ARGV.dup.each {|benchmark| load benchmark}', *benchmarks)
 end

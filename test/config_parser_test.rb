@@ -1,12 +1,8 @@
-require  File.join(File.dirname(__FILE__), 'tap_test_helper')
+require File.expand_path('../test_helper', __FILE__)
 require 'config_parser'
-require 'configurable'
 
 class ConfigParserTest < Test::Unit::TestCase
   Option = ConfigParser::Option
-  Config = Configurable::Config
-  NestConfig = Configurable::NestConfig
-  ConfigHash = Configurable::ConfigHash
   
   attr_reader :c
   
@@ -29,94 +25,6 @@ class ConfigParserTest < Test::Unit::TestCase
       {'key' => {}},
       {'key' => {'overlap' => 'value'}}]
     assert options.include?(ConfigParser.nest('key' => {}, 'key:overlap' => 'value'))
-  end
-  
-  #
-  # documentation test
-  #
-  
-  class ConfigClass
-    include Configurable
-
-    config :long, 'default', :short => 's'  # a standard option
-    config :switch, false, &c.switch        # a switch
-    config :flag, false, &c.flag            # a flag
-  end
-  
-  def test_documentation
-    opts = {}
-    parser = ConfigParser.new do |psr|
-      psr.on "-s", "--long LONG", "a standard option" do |value|
-        opts[:long] = value
-      end
-    
-      psr.on "--[no-]switch", "a switch" do |value|
-        opts[:switch] = value
-      end
-  
-      psr.on "--flag", "a flag" do
-        # note: no value is parsed; the block 
-        # only executes if the flag is found
-        opts[:flag] = true
-      end
-    end
-  
-    assert_equal ['a', 'b', 'c'], parser.parse("a b --long arg --switch --flag c")
-    assert_equal({:long => 'arg', :switch => true, :flag => true}, opts)
-  
-    psr = ConfigParser.new
-    psr.define(:key, 'default', :desc => 'a standard option')
-  
-    assert_equal ['a', 'b', 'c'], psr.parse('a b --key option c')
-    assert_equal({:key => 'option'}, psr.config)
-  
-    assert_equal ['a', 'b', 'c'], psr.parse('a b c')
-    assert_equal({:key => 'default'}, psr.config)
-  
-    psr = ConfigParser.new
-    psr.add(ConfigClass.configurations)
-  
-    assert_equal ['a', 'b', 'c'], psr.parse("a b --long arg --switch --flag c")
-    assert_equal({:long => 'arg', :switch => true, :flag => true}, psr.config)
-  
-    assert_equal ['a', 'b', 'c'], psr.parse("a b --long=arg --no-switch c")
-    assert_equal({:long => 'arg', :switch => false, :flag => false}, psr.config)
-  
-    assert_equal ['a', 'b', 'c'], psr.parse("a b -sarg c")
-    assert_equal({:long => 'arg', :switch => false, :flag => false}, psr.config)
-  
-    expected = %q{
-configurations:
-    -s, --long LONG                  a standard option
-        --[no-]switch                a switch
-        --flag                       a flag
-}
-    assert_equal expected, "\nconfigurations:\n#{psr.to_s}"
-    
-    ####
-    psr = ConfigParser.new
-
-    e = assert_raises(ArgumentError) do
-      psr.on("--delay N", 
-      Float,
-      "Delay N seconds before executing")
-    end
-    assert_equal "conflicting desc options: [Float, \"Delay N seconds before executing\"]", e.message
-
-    psr.on("--delay N", "Delay N seconds before executing") do |value|
-      value.to_f
-    end
-
-    e = assert_raises(ArgumentError) do
-      psr.on("-i", "--inplace [EXTENSION]",
-      "Edit ARGV files in place",
-      "  (make backup if EXTENSION supplied)")
-    end
-    assert_equal "conflicting desc options: [\"Edit ARGV files in place\", \"  (make backup if EXTENSION supplied)\"]", e.message
-
-    # correct
-    psr.on("-i", "--inplace EXTENSION", 
-    "Edit ARGV files in place\n  (make backup if EXTENSION supplied)")
   end
   
   #
@@ -401,91 +309,6 @@ configurations:
     attrs = {}
     c.define(:key, 'value', attrs)
     assert_equal({}, attrs)
-  end
-  
-  #
-  # add test
-  #
-
-  class NestClass
-    include Configurable
-    nest :nest do
-      config :key, 'value'
-    end
-  end
-
-  def test_add_documentation
-    psr = ConfigParser.new
-    psr.add(NestClass.configurations)
-    psr.parse('--nest:key value')
-    
-    assert_equal({'nest:key' => 'value'}, psr.config)
-    assert_equal({'nest' => {'key' => 'value'}}, psr.nested_config)
-  end
-  
-  def test_add_nests_delegates_according_to_nest
-    delegates = {
-      :one => Config.new(:one, :one=, 'one'),
-      :two => Config.new(:two, :two=, 'two'),
-    }
-    
-    c.add(delegates, "nest")
-    assert_equal({"nest:one" => 'one', "nest:two" => 'two'}, c.defaults)
-  end
-  
-  def test_add_nests_switches_properly
-    delegates = {
-      :one => Config.new(:one, :one=, 'one', :type => :switch)
-    }
-    
-    c.add(delegates, "nest")
-    assert_equal(["--nest:one", "--nest:no-one"], c.switches.keys)
-  end
-  
-  class ConfigurableClass
-    include Configurable
-    config :one, 'one'
-    config :two, 'two'
-  end
-  
-  def test_add_adds_nest_delegates_normally
-    delegates = {
-      :one => NestConfig.new(ConfigurableClass, :one, :one=),
-      :two => Config.new(:two, :two=, 'two')
-    }
-    
-    c.add(delegates)
-    assert_equal({:two => 'two', :one => {:one => 'one', :two => 'two'}}, c.defaults)
-  end
-  
-  def test_add_recusively_adds_delegates_from_nest_delegates_with_nest_type
-    delegates = {
-      :one => NestConfig.new(ConfigurableClass, :one, :one=, :type => :nest),
-      :two => Config.new(:two, :two=, 'two')
-    }
-    
-    c.add(delegates)
-    assert_equal({:two => 'two', "one:one" => 'one', "one:two" => 'two'}, c.defaults)
-  end
-  
-  def test_add_does_not_add_nested_delegates_if_the_option_if_type_is_hidden
-    delegates = {
-      :one => NestConfig.new(ConfigurableClass, :one, :one=, :type => :hidden),
-      :two => Config.new(:two, :two=, 'two')
-    }
-    
-    c.add(delegates)
-    assert_equal({:two => 'two'}, c.defaults)
-  end
-  
-  def test_add_raises_error_for_nesting_conflict
-    delegates = {
-      :one => NestConfig.new(ConfigurableClass, :one, :one=, :type => :nest, :declaration_order => 1),
-      'one:one' => Config.new(:two, :two=, 'two', :declaration_order => 0)
-    }
-    
-    e = assert_raises(ArgumentError) { c.add(delegates) }
-    assert_equal "already set by a different option: \"one:one\"", e.message
   end
   
   #
@@ -854,17 +677,4 @@ specials:
 }
     assert_equal expected, "\n" + c.to_s
   end
-  
-  def test_to_s_format_for_nested_delegates
-    delegates = {
-      :opt => Config.new(:opt, :opt=, 'value', :desc => 'desc', :short => 'o', :type => :switch),
-    }
-
-    c.add(delegates, "nest")
-    expected = %Q{
-    -o, --nest:[no-]opt              desc
-}
-    assert_equal expected, "\n" + c.to_s
-  end
-    
 end

@@ -73,7 +73,7 @@ class ConfigParser
     
     # Formats self as a help string for use on the command line.
     def to_s
-      lines = Lazydoc::Utils.wrap(desc.to_s, 43)
+      lines = Utils.wrap(desc.to_s, 43)
       
       header =  "    #{short_str}#{long_str} #{arg_name}"
       header = header.length > 36 ? header.ljust(80) : (LINE_FORMAT % [header, lines.shift])

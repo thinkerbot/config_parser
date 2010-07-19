@@ -116,6 +116,13 @@ class ConfigParser
       attributes
     end
     
+    # The wrapping algorithm is slightly modified from:
+    # http://blog.macromates.com/2006/wrapping-text-with-regular-expressions/
+    def wrap(line, cols=80, tabsize=2)
+      line = line.gsub(/\t/, " " * tabsize) unless tabsize == nil
+      line.gsub(/(.{1,#{cols}})( +|$\r?\n?)|(.{1,#{cols}})/, "\\1\\3\n").split(/\s*?\n/)
+    end
+    
     # Attributes:
     #
     #   :long      the long key ("--key") 

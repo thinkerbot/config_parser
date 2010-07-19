@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
   s.has_rdoc = true
   s.rdoc_options.concat %W{--main README -S -N --title Config\ Parser}
   
-  # s.add_dependency('tap', '= 1.3.0')
+  s.add_dependency('lazydoc', '~> 1.0')
   # s.add_development_dependency('tap-test')
   
   # list extra rdoc files here.
