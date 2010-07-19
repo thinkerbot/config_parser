@@ -180,34 +180,29 @@ class ConfigParser
   # A hash of (switch, Option) pairs mapping command line
   # switches like '-s' or '--long' to the Option that
   # handles them.
-  attr_reader :switches
+  attr_reader :options
   
   # The hash receiving configurations produced by parse.
   attr_accessor :config
   
-  # A hash of default configurations merged into config during parse. These
-  # defaults are defined as options are added to self (via define, add, etc)
-  # and do not need to be manually specified.
-  attr_reader :defaults
+  attr_accessor :option_break
   
-  # A hash of default parsing options that adjust the behavior of parse
-  # (see parse).
-  attr_reader :default_parse_options
+  attr_accessor :preserve_option_break
   
   # Initializes a new ConfigParser and passes it to the block, if given.
-  def initialize(config={}, default_parse_options={})
-    @registry = []
-    @switches = {}
-    @config = config
-    @defaults = {}
-    @default_parse_options = {
-      :clear_config => true,
-      :add_defaults => true,
-      :ignore_unknown_options => false,
+  def initialize(config={}, opts={})
+    opts = {
       :option_break => OPTION_BREAK,
-      :keep_break => false
-    }.merge(default_parse_options)
-
+      :preserve_option_break => false
+    }.merge(opts)
+    
+    @registry = []
+    @options = {}
+    @config = config
+    
+    @option_break = opts[:option_break]
+    @preserve_option_break = opts[:preserve_option_break]
+    
     yield(self) if block_given?
   end
   
@@ -219,19 +214,6 @@ class ConfigParser
   # Sets the config value for key.
   def []=(key, value)
     config[key] = value
-  end
-  
-  # Returns the nested form of config (see ConfigParser.nest).  Primarily
-  # useful when nested configurations have been added with add.
-  def nested_config
-    ConfigParser.nest(config)
-  end
-  
-  # Returns an array of the options registered with self.
-  def options
-    @registry.select do |opt|
-      opt.kind_of?(Option)
-    end
   end
   
   # Adds a separator string to self, used in to_s.
@@ -247,7 +229,7 @@ class ConfigParser
   def register(opt, override=false)
     if override
       existing = opt.switches.collect do |switch|
-        @switches.delete(switch)
+        @options.delete(switch)
       end
       @registry -= existing
     end
@@ -257,9 +239,9 @@ class ConfigParser
     end
     
     opt.switches.each do |switch|
-      case @switches[switch]
+      case @options[switch]
       when opt then next
-      when nil then @switches[switch] = opt
+      when nil then @options[switch] = opt
       else raise ArgumentError, "switch is already mapped to a different option: #{switch}"
       end
     end
@@ -361,15 +343,10 @@ class ConfigParser
   # The :hidden type causes no configuration to be defined.  Raises an error if
   # key is already set by a different option.
   def define(key, default_value=nil, attributes={})
-    # check for conflicts and register
-    if defaults.has_key?(key)
-      raise ArgumentError, "already set by a different option: #{key.inspect}"
-    end
-    defaults[key] = default_value
     
     # ensure setup does not modifiy input attributes
     attributes = attributes.dup
-    
+
     block = case attributes[:type]
     when :switch then setup_switch(key, default_value, attributes)
     when :flag   then setup_flag(key, default_value, attributes)
@@ -382,54 +359,8 @@ class ConfigParser
         setup_option(key, attributes)
       end
     end
-    
+
     on(attributes, &block)
-  end
-  
-  # Adds a hash of delegates (for example the configurations for a Configurable
-  # class) to self.  Configs are added like:
-  #
-  #   define(key, delegate.default, delegate.attributes)
-  #
-  # ==== Nesting
-  #
-  # When you nest Configurable classes, a special syntax is necessary to
-  # specify nested configurations in a flat format compatible with the
-  # command line.  As such, nested delegates are recursively added with
-  # their key as a prefix.  For instance:
-  #
-  #   class NestClass
-  #     include Configurable
-  #     nest :nest do
-  #       config :key, 'value'
-  #     end
-  #   end
-  #  
-  #   psr = ConfigParser.new
-  #   psr.add(NestClass.configurations)
-  #   psr.parse('--nest:key value')
-  #
-  #   psr.config                 # => {'nest:key' => 'value'}
-  #   psr.nested_config          # => {'nest' => {'key' => 'value'}}
-  #
-  # Side note: The fact that all the keys end up as strings underscores
-  # the importance of having indifferent access for delegates.  If you
-  # set use_indifferent_access(false), be prepared to symbolize nested
-  # keys as necessary.
-  #
-  def add(delegates, nesting=nil)
-    delegates.each_pair do |key, delegate|
-      key = nesting ? "#{nesting}:#{key}" : key
-      
-      case delegate[:type]
-      when :hidden
-        next
-      when :nest
-        add(delegate.nest_class.configurations, key)
-      else
-        define(key, delegate.default, delegate.attributes)
-      end
-    end
   end
   
   # Parses options from argv in a non-destructive manner and returns an
@@ -443,28 +374,24 @@ class ConfigParser
   # add_defaults:: adds the default values to config (true)
   # ignore_unknown_options:: causes unknown options to be ignored (false)
   #
-  def parse(argv=ARGV, options={})
+  def parse(argv=ARGV)
     argv = argv.dup unless argv.kind_of?(String)
-    parse!(argv, options)
+    parse!(argv)
   end
   
   # Same as parse, but removes parsed args from argv.
-  def parse!(argv=ARGV, options={})
+  def parse!(argv=ARGV)
     argv = Shellwords.shellwords(argv) if argv.kind_of?(String)
     
     args = []
-    remainder = scan(argv, options) {|arg| args << arg}
+    remainder = scan(argv) {|arg| args << arg}
     args.concat(remainder)
     argv.replace(args)
     
     argv
   end
   
-  def scan(argv=ARGV, options={})
-    options = default_parse_options.merge(options)
-    config.clear if options[:clear_config]
-    
-    option_break = options[:option_break]
+  def scan(argv=ARGV)
     while !argv.empty?
       arg = argv.shift
   
@@ -477,7 +404,7 @@ class ConfigParser
       # add the remaining args and break
       # for the option break
       if option_break === arg
-        argv.unshift(arg) if options[:keep_break]
+        argv.unshift(arg) if preserve_option_break
         break
       end
   
@@ -487,24 +414,14 @@ class ConfigParser
       arg =~ LONG_OPTION || arg =~ SHORT_OPTION || arg =~ ALT_SHORT_OPTION 
   
       # lookup the option
-      unless option = @switches[$1]
+      unless option = @options[$1]
         raise "unknown option: #{$1 || arg}"
       end
   
       option.parse($1, $2, argv)
     end
     
-    defaults.each_pair do |key, default|
-      config[key] = default unless config.has_key?(key)
-    end if options[:add_defaults]
-    
     argv
-  end
-  
-  def warn_ignored_args(args)
-    if args && !args.empty?
-      warn "ignoring args: #{args.inspect}"
-    end
   end
   
   # Converts the options and separators in self into a help string suitable for

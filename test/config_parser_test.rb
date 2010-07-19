@@ -58,9 +58,8 @@ class ConfigParserTest < Test::Unit::TestCase
   
   def test_initialize
     c = ConfigParser.new
-    assert_equal({}, c.switches)
+    assert_equal({}, c.options)
     assert_equal({}, c.config)
-    assert_equal({}, c.defaults)
   end
   
   def test_initialize_sets_config
@@ -90,15 +89,6 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   #
-  # nested_config test
-  #
-  
-  def test_nested_config_returns_the_nested_version_of_config
-    c.config['nest:key'] = 'value'
-    assert_equal({'nest' => {'key' => 'value'}}, c.nested_config)
-  end
-  
-  #
   # register test
   #
   
@@ -109,11 +99,11 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal [opt], c.registry
   end
   
-  def test_register_adds_opt_to_switches_by_switches
+  def test_register_adds_opt_to_options_by_switches
     opt = Option.new(:long => 'long', :short => 's')
     c.register(opt)
     
-    assert_equal({'--long' => opt, '-s' => opt}, c.switches)
+    assert_equal({'--long' => opt, '-s' => opt}, c.options)
   end
   
   def test_register_raises_error_for_conflicting_switches
@@ -141,7 +131,7 @@ class ConfigParserTest < Test::Unit::TestCase
       '-k' => o2,
       '--non-conflict' => o3,
       '-n' => o3
-    }, c.switches)
+    }, c.options)
     
     o4 = Option.new(:long => 'key', :short => 'k')
     c.register(o4, true)
@@ -152,7 +142,7 @@ class ConfigParserTest < Test::Unit::TestCase
       '-k' => o4,
       '--non-conflict' => o3,
       '-n' => o3
-    }, c.switches)
+    }, c.options)
   end
   
   def test_register_does_not_raises_errors_for_registering_an_option_twice
@@ -227,7 +217,7 @@ class ConfigParserTest < Test::Unit::TestCase
       '-k' => o2,
       '--non-conflict' => o3,
       '-n' => o3
-    }, c.switches)
+    }, c.options)
     
     o4 = c.on! "-k", "--key"
     
@@ -237,7 +227,7 @@ class ConfigParserTest < Test::Unit::TestCase
       '-k' => o4,
       '--non-conflict' => o3,
       '-n' => o3
-    }, c.switches)
+    }, c.options)
   end
   
   #
@@ -283,11 +273,6 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal [opt], c.registry
   end
   
-  def test_define_adds_default_value_to_defaults
-    c.define(:key, 'value')
-    assert_equal({:key => 'value'}, c.defaults)
-  end
-  
   def test_define_does_not_add_or_generate_an_option_if_type_is_hidden
     assert_equal nil, c.define(:key, 'value', :type => :hidden)
     assert_equal [], c.registry
@@ -296,13 +281,6 @@ class ConfigParserTest < Test::Unit::TestCase
   def test_define_does_not_add_a_long_option_if_nil
     opt = c.define(:key, 'value', :long => nil, :short => :s)
     assert_equal nil, opt.long
-  end
-  
-  def test_define_raises_error_for_conflicting_keys
-    c.define(:key)
-    
-    e = assert_raises(ArgumentError) { c.define(:key) }
-    assert_equal "already set by a different option: :key", e.message
   end
   
   def test_define_does_not_modify_input_attributes
@@ -456,48 +434,24 @@ class ConfigParserTest < Test::Unit::TestCase
   # parse using config test
   #
   
-  def test_parse_adds_defaults_to_config
-    c.define('opt', 'default')
-    args = c.parse(["a", "b"])
-    
-    assert_equal({"opt" => "default"}, c.config)
-    assert_equal(["a", "b"], args)
-  end
-  
-  def test_parse_clears_config_unless_specified_otherwise
-    c.define('a', 'default')
-    c.define('b', 'default')
-    
-    c.parse(["--a", "value"])
-    assert_equal({"a" => "value", "b" => "default"}, c.config)
-    
-    c.parse(["--b", "value"])
-    assert_equal({"a" => "default", "b" => "value"}, c.config)
-  end
-  
-  def test_parse_does_not_add_defaults_unless_specified
-    c.define('opt', 'default')
-    args = c.parse(["a", "b"], :add_defaults => false)
-    
-    assert_equal({}, c.config)
-    assert_equal(["a", "b"], args)
-  end
-
-  def test_parse_keeps_option_break_if_specified
+  def test_parse_preserves_option_break_if_specified
     args = c.parse(["a", "--", "b"])
     assert_equal(["a", "b"], args)
     
-    args = c.parse(["a", "--", "b"], :keep_break => true)
+    c.preserve_option_break = true
+    args = c.parse(["a", "--", "b"])
     assert_equal(["a", "--", "b"], args)
   end
   
   def test_parse_can_configure_option_break
     c.on('--opt') {}
     
-    args = c.parse(["a", "---", "--opt", "b"], :option_break => "---")
+    c.option_break = '---'
+    args = c.parse(["a", "---", "--opt", "b"])
     assert_equal(["a", "--opt", "b"], args)
     
-    args = c.parse(["a", "---", "--opt", "b"], :option_break => /-{3}/)
+    c.option_break = /-{3}/
+    args = c.parse(["a", "---", "--opt", "b"])
     assert_equal(["a", "--opt", "b"], args)
   end
   
@@ -637,9 +591,11 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal true, was_in_block
   end
   
-  def test_scan_keeps_option_break_without_yielding_to_block
+  def test_scan_does_not_yield_break_to_block_on_preserve
+    c.preserve_option_break = true
+    
     args = []
-    res = c.scan(["a", "--", "b"], :keep_break => true) {|arg| args << arg}
+    res = c.scan(["a", "--", "b"]) {|arg| args << arg}
     
     assert_equal(["a"], args)
     assert_equal(["--", "b"], res)
