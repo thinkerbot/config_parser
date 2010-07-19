@@ -1,5 +1,5 @@
-require 'config_parser/option'
-require 'config_parser/switch'
+require 'config_parser/list'
+require 'config_parser/nest'
 
 autoload(:Shellwords, 'shellwords')
 
@@ -112,65 +112,6 @@ autoload(:Shellwords, 'shellwords')
 #
 #
 class ConfigParser
-  class << self
-    # Splits and nests compound keys of a hash.
-    #
-    #   ConfigParser.nest('key' => 1, 'compound:key' => 2)
-    #   # => {
-    #   # 'key' => 1,
-    #   # 'compound' => {'key' => 2}
-    #   # }
-    #
-    # Nest does not do any consistency checking, so be aware that results will
-    # be ambiguous for overlapping compound keys.
-    #
-    #   ConfigParser.nest('key' => {}, 'key:overlap' => 'value')
-    #   # =? {'key' => {}}
-    #   # =? {'key' => {'overlap' => 'value'}}
-    #
-    def nest(hash, split_char=":")
-      result = {}
-      hash.each_pair do |compound_key, value|
-        if compound_key.kind_of?(String)
-          keys = compound_key.split(split_char)
-      
-          unless keys.length == 1
-            nested_key = keys.pop
-            nested_hash = keys.inject(result) {|target, key| target[key] ||= {}}
-            nested_hash[nested_key] = value
-            next
-          end
-        end
-    
-        result[compound_key] = value
-      end
-  
-      result
-    end
-    
-    # Generates a new parser bound to a specific config.  All this really
-    # means is that each time the parser calls parse, configurations will
-    # be added to the config without clearing the config, or adding default
-    # values. This can be useful in signaling situations where a config
-    # needs to be updated multiple times.
-    #
-    #   psr = ConfigParser.bind
-    #   psr.define('a', 'default')
-    #   psr.define('b', 'default')
-    # 
-    #   psr.parse %w{--a value}
-    #   psr.config                       # => {"a" => "value"}
-    # 
-    #   psr.parse %w{--b value}
-    #   psr.config                       # => {"a" => "value", "b" => "value"}
-    #
-    def bind(config={})
-      parser = new(config, :clear_config => false, :add_defaults => false)
-      yield(parser) if block_given?
-      parser
-    end
-  end
-  
   include Utils
   
   # Returns an array of the options registered with self, in the order in
@@ -346,8 +287,9 @@ class ConfigParser
     
     # ensure setup does not modifiy input attributes
     attributes = attributes.dup
-
-    block = case attributes[:type]
+    attributes[:name] = key
+    
+    opt = case attributes[:type]
     when :switch then setup_switch(key, default_value, attributes)
     when :flag   then setup_flag(key, default_value, attributes)
     when :list, :list_select then setup_list(key, attributes)
@@ -360,7 +302,7 @@ class ConfigParser
       end
     end
 
-    on(attributes, &block)
+    register opt
   end
   
   # Parses options from argv in a non-destructive manner and returns an
@@ -418,7 +360,7 @@ class ConfigParser
         raise "unknown option: #{$1 || arg}"
       end
   
-      option.parse($1, $2, argv)
+      option.parse($1, $2, argv, config)
     end
     
     argv
@@ -470,9 +412,15 @@ class ConfigParser
     klass = case
     when attributes[:long].to_s =~ /^--\[no-\](.*)$/ 
       attributes[:long] = "--#{$1}"
+      if arg_name = attributes[:arg_name]
+        raise ArgumentError, "arg_name specified for switch: #{arg_name}"
+      end
+      
       Switch
-    else 
+    when attributes[:arg_name]
       Option
+    else
+      Flag
     end
     
     klass.new(attributes, &block)

@@ -4,6 +4,9 @@ class ConfigParser
   module Utils
     module_function
     
+    # A format string used by to_s
+    LINE_FORMAT = "%-36s %-43s"
+    
     # The option break argument
     OPTION_BREAK = "--"
 
@@ -132,7 +135,7 @@ class ConfigParser
       infer_long(key, attributes)
       infer_arg_name(key, attributes)
       
-      lambda {|value| config[key] = value }
+      Option.new(attributes)
     end
     
     # Attributes:
@@ -142,7 +145,7 @@ class ConfigParser
     def setup_flag(key, default=true, attributes={})
       infer_long(key, attributes)
       
-      lambda {config[key] = !default }
+      Flag.new(attributes)
     end
     
     # Attributes:
@@ -153,10 +156,11 @@ class ConfigParser
       infer_long(key, attributes)
       
       if attributes[:long].to_s =~ /^(?:--)?(\[no-\])?(.*)$/ 
-        attributes[:long] = "--[no-]#{$2}" unless $1
+        attributes[:long] = "--#{$2}"
+        attributes[:negative_long] = "--no-#{$2}"
       end
       
-      lambda {|value| config[key] = value }
+      Switch.new(attributes)
     end
     
     # Attributes:
@@ -169,16 +173,7 @@ class ConfigParser
       infer_long(key, attributes)
       infer_arg_name(key, attributes)
       
-      split = attributes[:split]
-      n = attributes[:n]
-      
-      lambda do |value|
-        array = (config[key] ||= [])
-        array.concat(split ? value.split(split) : [value])
-        if n && array.length > n
-          raise "too many assignments: #{key.inspect}"
-        end
-      end
+      List.new(attributes)
     end
   end
 end

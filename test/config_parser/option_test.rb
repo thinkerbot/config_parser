@@ -14,7 +14,7 @@ class OptionTest < Test::Unit::TestCase
     assert_equal nil, o.short
     assert_equal nil, o.arg_name
     assert_equal nil, o.desc
-    assert_equal nil, o.block
+    assert_equal nil, o.callback
   end
   
   def test_initialization_with_options
@@ -24,7 +24,7 @@ class OptionTest < Test::Unit::TestCase
     assert_equal '-s', o.short
     assert_equal 'name', o.arg_name
     assert_equal 'some desc', o.desc
-    assert_equal b, o.block
+    assert_equal b, o.callback
   end
   
   def test_initialization_formats_switches_as_necessary
@@ -78,42 +78,10 @@ class OptionTest < Test::Unit::TestCase
   end
   
   #
-  # parse test (without arg_name)
+  # parse test
   #
   
-  def test_parse_with_no_arg_name_calls_block
-    was_in_block = false
-    opt = Option.new do |*args| 
-      assert args.empty?
-      was_in_block = true
-    end
-
-    opt.parse('--switch', nil, [])
-    assert was_in_block
-  end
-  
-  def test_parse_without_arg_name_returns_nil_if_no_block_is_given
-    opt = Option.new
-    assert_equal nil, opt.parse('--switch', nil, [])
-  end
-  
-  def test_parse_without_arg_name_returns_block_value
-    opt = Option.new { 'return value' }
-    assert_equal 'return value', opt.parse('--switch', nil, [])
-  end
-  
-  def test_parse_with_no_arg_name_raises_error_if_value_is_provided
-    opt = Option.new
-    
-    e = assert_raises(RuntimeError) { opt.parse('--switch', 'value', []) }
-    assert_equal "value specified for flag: --switch", e.message
-  end
-  
-  #
-  # parse test (with arg_name)
-  #
-  
-  def test_parse_with_arg_name_calls_block_with_value
+  def test_parse_calls_block_with_value
     value_in_block = false
     opt = Option.new(:arg_name => 'ARG') {|input| value_in_block = input }
 
@@ -121,7 +89,7 @@ class OptionTest < Test::Unit::TestCase
     assert_equal 'value', value_in_block
   end
   
-  def test_parse_with_arg_name_pulls_value_from_argv_if_no_value_is_given
+  def test_parse_pulls_value_from_argv_if_no_value_is_given
     value_in_block = false
     opt = Option.new(:arg_name => 'ARG') {|input| value_in_block = input }
 
@@ -131,17 +99,17 @@ class OptionTest < Test::Unit::TestCase
     assert_equal [], argv
   end
   
-  def test_parse_with_arg_name_returns_value_if_no_block_is_given
+  def test_parse_returns_value_if_no_block_is_given
     opt = Option.new(:arg_name => 'ARG')
     assert_equal 'value', opt.parse('--switch', 'value', [])
   end
   
-  def test_parse_with_arg_name_returns_block_value
+  def test_parse_returns_block_value
     opt = Option.new(:arg_name => 'ARG') {|value| 'return value' }
     assert_equal 'return value', opt.parse('--switch', 'value', [])
   end
   
-  def test_parse_with_arg_name_raises_error_if_no_value_is_provided_and_argv_is_empty
+  def test_parse_raises_error_if_no_value_is_provided_and_argv_is_empty
     opt = Option.new(:arg_name => 'ARG')
     
     e = assert_raises(RuntimeError) { opt.parse('--switch', nil, []) }

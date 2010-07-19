@@ -11,48 +11,6 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   #
-  # ConfigParser.nest test
-  #
-  
-  def test_nest_documentation
-    expected = {
-      'key' => 1,
-      'compound' => {'key' => 2}
-    }
-    assert_equal expected, ConfigParser.nest('key' => 1, 'compound:key' => 2)
-    
-    options = [
-      {'key' => {}},
-      {'key' => {'overlap' => 'value'}}]
-    assert options.include?(ConfigParser.nest('key' => {}, 'key:overlap' => 'value'))
-  end
-  
-  #
-  # bind test
-  #
-  
-  def test_bind_documentation
-    psr = ConfigParser.bind
-    psr.define('a', 'default')
-    psr.define('b', 'default')
-  
-    psr.parse %w{--a value}
-    assert_equal({"a" => "value"}, psr.config)
-  
-    psr.parse %w{--b value}
-    assert_equal({"a" => "value", "b" => "value"}, psr.config)
-  end
-  
-  def test_bind_yields_self_to_block_if_given
-    parser = nil
-    c = ConfigParser.bind({}) do |psr|
-      parser = psr
-    end
-    
-    assert_equal c, parser
-  end
-  
-  #
   # initialize test
   #
   
@@ -160,10 +118,10 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal [opt], c.registry
   end
   
-  def test_on_sets_block_in_option
-    b = lambda {}
-    opt = c.on(&b)
-    assert_equal b, opt.block
+  def test_on_sets_callback_in_option
+    callback = lambda {}
+    opt = c.on(&callback)
+    assert_equal callback, opt.callback
   end
   
   def test_on_uses_a_trailing_hash_for_options
@@ -182,7 +140,6 @@ class ConfigParserTest < Test::Unit::TestCase
     opt = c.on("--compound-long")
     assert_equal nil, opt.short
     assert_equal '--compound-long', opt.long
-    assert_equal nil, opt.arg_name
     assert_equal nil, opt.desc
   end
   
@@ -241,7 +198,7 @@ class ConfigParserTest < Test::Unit::TestCase
       attributes[:arg_name] = 'ARG_NAME'
 
       # return a block handling the input
-      lambda {|input| config[key] = input.reverse }
+      ConfigParser::Option.new(attributes) {|input| input.reverse }
     end
   end
   
