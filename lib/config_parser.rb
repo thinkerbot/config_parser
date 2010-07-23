@@ -283,26 +283,12 @@ class ConfigParser
   #
   # The :hidden type causes no configuration to be defined.  Raises an error if
   # key is already set by a different option.
-  def define(key, default_value=nil, attributes={})
+  def define(key, default=nil, attrs={}, &block)
+    attrs = attrs.merge(:name => key, :default => default)
+    type = attrs.delete(:type) || :option
     
-    # ensure setup does not modifiy input attributes
-    attributes = attributes.dup
-    attributes[:name] = key
-    
-    opt = case attributes[:type]
-    when :switch then setup_switch(key, default_value, attributes)
-    when :flag   then setup_flag(key, default_value, attributes)
-    when :list, :list_select then setup_list(key, attributes)
-    when :hidden then return nil
-    else
-      if respond_to?("setup_#{attributes[:type]}")
-        send("setup_#{attributes[:type]}", key, default_value, attributes)
-      else
-        setup_option(key, attributes)
-      end
-    end
-
-    register opt
+    clas = option_class(type)
+    clas ? register(clas.new(attrs, &block)) : nil
   end
   
   # Parses options from argv in a non-destructive manner and returns an
@@ -376,53 +362,43 @@ class ConfigParser
   
   protected
   
+  def option_class(type)
+    case type
+    when :option then Option
+    when :flag   then Flag
+    when :switch then Switch
+    when :list   then List
+    when :hidden then nil
+    else raise "unknown option type: #{type}"
+    end
+  end
+  
   # helper to parse an option from an argv.  new_option is used
   # by on and on! to generate options
   def new_option(argv, &block) # :nodoc:
-    attributes = argv.last.kind_of?(Hash) ? argv.pop : {}
+    attrs = argv.last.kind_of?(Hash) ? argv.pop : {}
+    
     argv.each do |arg|
-      # split switch arguments... descriptions
-      # still won't match as a switch even
-      # after a split
-      switch, arg_name = arg.kind_of?(String) ? arg.split(' ', 2) : arg
+      case arg
+      when OPTION
+        attrs[$2.length == 1 ? :short : :long] = $1
+        attrs[:arg_name] = $3 if $3
       
-      # determine the kind of argument specified
-      key = case switch
-      when SHORT_OPTION then :short
-      when LONG_OPTION  then :long
-      else :desc
-      end
-      
-      # check for conflicts
-      if attributes[key]
-        raise ArgumentError, "conflicting #{key} options: [#{attributes[key].inspect}, #{arg.inspect}]"
-      end
-      
-      # set the option attributes
-      case key
-      when :long, :short
-        attributes[key] = switch
-        attributes[:arg_name] = arg_name if arg_name
+      when SWITCH
+        attrs[:long] = "--#{$2}"
+        attrs[:negative_long] = "--#{$1}-#{$2}"
+        attrs[:type] = :switch
+        raise ArgumentError.new("arg_name specified for switch: #{$3}") if $3
+        
       else
-        attributes[key] = arg
+        attrs[:desc] = arg
       end
     end
     
-    # check if a switch-style option is specified
-    klass = case
-    when attributes[:long].to_s =~ /^--\[no-\](.*)$/ 
-      attributes[:long] = "--#{$1}"
-      if arg_name = attributes[:arg_name]
-        raise ArgumentError, "arg_name specified for switch: #{arg_name}"
-      end
-      
-      Switch
-    when attributes[:arg_name]
-      Option
-    else
-      Flag
-    end
+    type = attrs.delete(:type)
+    type ||= (attrs.has_key?(:arg_name) ? :option : :flag)
     
-    klass.new(attributes, &block)
+    clas = option_class(type)
+    clas ? clas.new(attrs, &block) : nil
   end
 end

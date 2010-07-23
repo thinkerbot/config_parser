@@ -9,7 +9,10 @@ class ConfigParser
     
     # The option break argument
     OPTION_BREAK = "--"
-
+    
+    OPTION = /\A((-{1,2})[A-Za-z].*?)(?:\s+(.*))?\z/
+    SWITCH = /\A--\[([A-Za-z].*?)-\]([A-Za-z].*?)(?:\s+(.*))?\z/
+    
     # Matches a nested long option, with or without a value
     # (ex: '--opt', '--nested:opt', '--opt=value').  After 
     # the match:
@@ -17,7 +20,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    LONG_OPTION = /^(--[A-z].*?)(?:=(.*))?$/
+    LONG_OPTION = /^(--[A-Za-z].*?)(?:=(.*))?$/
 
     # Matches a nested short option, with or without a value
     # (ex: '-o', '-n:o', '-o=value').  After the match:
@@ -25,7 +28,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    SHORT_OPTION = /^(-[A-z](?::[A-z])*)(?:=(.*))?$/
+    SHORT_OPTION = /^(-[A-Za-z](?::[A-Za-z])*)(?:=(.*))?$/
 
     # Matches the alternate syntax for short options
     # (ex: '-n:ovalue', '-ovalue').  After the match:
@@ -33,7 +36,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    ALT_SHORT_OPTION = /^(-[A-z](?::[A-z])*)(.+)$/
+    ALT_SHORT_OPTION = /^(-[A-Za-z](?::[A-Za-z])*)(.+)$/
     
     # Turns the input string into a short-format option.  Raises
     # an error if the option does not match SHORT_OPTION.  Nils
@@ -85,95 +88,11 @@ class ConfigParser
       "--#{switch.join(':')}"
     end
     
-    # Infers the default long using key and adds it to attributes.  Returns
-    # attributes.
-    #
-    #   infer_long(:key, {})                      # => {:long => '--key'}
-    #
-    def infer_long(key, attributes)
-      unless attributes.has_key?(:long)
-        attributes[:long] = "--#{key}"
-      end
-      
-      attributes
-    end
-    
-    # Infers the default argname from attributes[:long] and sets it in
-    # attributes.  Returns attributes.
-    #
-    #   infer_arg_name(:key, {:long => '--opt'})  # => {:long => '--opt', :arg_name => 'OPT'}
-    #   infer_arg_name(:key, {})                  # => {:arg_name => 'KEY'}
-    #
-    def infer_arg_name(key, attributes)
-      if attributes.has_key?(:arg_name)
-        return attributes
-      end
-      
-      if long = attributes[:long]
-        long.to_s =~ /^(?:--)?(.*)$/
-        attributes[:arg_name] = $1.upcase
-      else
-        attributes[:arg_name] = key.to_s.upcase
-      end
-      
-      attributes
-    end
-    
     # The wrapping algorithm is slightly modified from:
     # http://blog.macromates.com/2006/wrapping-text-with-regular-expressions/
     def wrap(line, cols=80, tabsize=2)
       line = line.gsub(/\t/, " " * tabsize) unless tabsize == nil
       line.gsub(/(.{1,#{cols}})( +|$\r?\n?)|(.{1,#{cols}})/, "\\1\\3\n").split(/\s*?\n/)
-    end
-    
-    # Attributes:
-    #
-    #   :long      the long key ("--key") 
-    #   :arg_name  the argument name ("KEY") 
-    #
-    def setup_option(key, attributes={})
-      infer_long(key, attributes)
-      infer_arg_name(key, attributes)
-      
-      Option.new(attributes)
-    end
-    
-    # Attributes:
-    #
-    #   :long      the long key ("--key") 
-    #
-    def setup_flag(key, default=true, attributes={})
-      infer_long(key, attributes)
-      
-      Flag.new(attributes)
-    end
-    
-    # Attributes:
-    #
-    #   :long      the long key ("--[no-]key") 
-    #
-    def setup_switch(key, default=true, attributes={})
-      infer_long(key, attributes)
-      
-      if attributes[:long].to_s =~ /^(?:--)?(\[no-\])?(.*)$/ 
-        attributes[:long] = "--#{$2}"
-        attributes[:negative_long] = "--no-#{$2}"
-      end
-      
-      Switch.new(attributes)
-    end
-    
-    # Attributes:
-    #
-    #   :long      the long key ("--key")
-    #   :arg_name  the argument name ("KEY")
-    #   :split     the split character
-    #
-    def setup_list(key, attributes={})
-      infer_long(key, attributes)
-      infer_arg_name(key, attributes)
-      
-      List.new(attributes)
     end
   end
 end

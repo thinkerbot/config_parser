@@ -20,7 +20,7 @@ class ConfigParser
     def initialize(attrs={}, &callback)
       @name  = attrs[:name]
       @short = shortify(attrs[:short])
-      @long  = longify(attrs[:long])
+      @long  = longify(attrs.has_key?(:long) ? attrs[:long] : name)
       @desc  = attrs[:desc]
       @callback = callback
     end

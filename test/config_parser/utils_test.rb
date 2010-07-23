@@ -184,25 +184,4 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert_equal '--no-opt', prefix_long("--opt", 'no-')
     assert_equal '--nested:no-opt', prefix_long("--nested:opt", 'no-')
   end
-  
-  #
-  # infer_long test
-  #
-  
-  def test_infer_long_documentation
-    assert_equal({:long => '--key'}, infer_long(:key, {}))
-  end
-  
-  #
-  # infer_arg_name test
-  #
-  
-  def test_infer_arg_name_documentation
-    assert_equal({:long => '--opt', :arg_name => 'OPT'}, infer_arg_name(:key, {:long => '--opt'}))
-    assert_equal({:arg_name => 'KEY'}, infer_arg_name(:key, {}))
-  end
-  
-  def test_infer_arg_name_does_not_infer_argname_if_nil
-    assert_equal({:arg_name => nil}, infer_arg_name(:key, {:arg_name => nil}))
-  end
 end

@@ -15,7 +15,7 @@ class ConfigParser
     # (ex 'opt', 'o') and full switches ('--opt', '-o') are valid.
     def initialize(attrs={})
       super
-      @arg_name = attrs[:arg_name]
+      @arg_name = attrs[:arg_name] || (name ? name.to_s.upcase : nil)
     end
     
     def parse(switch, value, argv=[], config={})

@@ -17,7 +17,7 @@ class ConfigParser
     def initialize(attrs={})
       super
       raise ArgumentError, "no long specified" unless long
-      @negative_long = prefix_long(long, 'no-')
+      @negative_long = attrs[:negative_long] || prefix_long(long, 'no-')
     end
     
     # Returns an array of non-nil switches mapping to self (ie 
