@@ -10,8 +10,8 @@ class ConfigParser
     # The option break argument
     OPTION_BREAK = "--"
     
-    OPTION = /\A((-{1,2})[A-Za-z].*?)(?:\s+(.*))?\z/
-    SWITCH = /\A--\[([A-Za-z].*?)-\]([A-Za-z].*?)(?:\s+(.*))?\z/
+    OPTION = /\A((-{1,2})\w.*?)(?:\s+(.*))?\z/
+    SWITCH = /\A--\[(\w.*?)-\](\w.*?)(?:\s+(.*))?\z/
     
     # Matches a nested long option, with or without a value
     # (ex: '--opt', '--nested:opt', '--opt=value').  After 
@@ -20,7 +20,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    LONG_OPTION = /^(--[A-Za-z].*?)(?:=(.*))?$/
+    LONG_OPTION = /^(--\w.*?)(?:=(.*))?$/
 
     # Matches a nested short option, with or without a value
     # (ex: '-o', '-n:o', '-o=value').  After the match:
@@ -28,7 +28,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    SHORT_OPTION = /^(-[A-Za-z](?::[A-Za-z])*)(?:=(.*))?$/
+    SHORT_OPTION = /^(-\w(?::\w)*)(?:=(.*))?$/
 
     # Matches the alternate syntax for short options
     # (ex: '-n:ovalue', '-ovalue').  After the match:
@@ -36,7 +36,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    ALT_SHORT_OPTION = /^(-[A-Za-z](?::[A-Za-z])*)(.+)$/
+    ALT_SHORT_OPTION = /^(-\w(?::\w)*)(.+)$/
     
     # Turns the input string into a short-format option.  Raises
     # an error if the option does not match SHORT_OPTION.  Nils

@@ -43,7 +43,6 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert "--" !~ r
     assert "---" !~ r
     assert "--." !~ r
-    assert "--1" !~ r
     assert "--=value" !~ r
   end
   
@@ -79,7 +78,6 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert "--o" !~ r
     assert "--" !~ r
     assert "-." !~ r
-    assert "-1" !~ r
     assert "-=value" !~ r
     assert "-n:long" !~ r
   end
@@ -94,7 +92,7 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert "-ovalue" =~ r
     assert_equal "-o", $1
     assert_equal "value", $2
-
+    
     assert "-n:l:ovalue" =~ r
     assert_equal "-n:l:o", $1
     assert_equal "value", $2
@@ -104,7 +102,6 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert "--o" !~ r
     assert "--" !~ r
     assert "-." !~ r
-    assert "-1" !~ r
     assert "-=value" !~ r
     assert "-o" !~ r
   end
@@ -131,9 +128,6 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
   def test_shortify_raises_error_for_invalid_short
     e = assert_raises(ArgumentError) { shortify("-long") }
     assert_equal "invalid short option: -long", e.message
-    
-    e = assert_raises(ArgumentError) { shortify("-1") }
-    assert_equal "invalid short option: -1", e.message
     
     e = assert_raises(ArgumentError) { shortify("") }
     assert_equal "invalid short option: -", e.message
@@ -165,9 +159,6 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
   def test_longify_raises_error_for_invalid_long
     e = assert_raises(ArgumentError) { longify("-long") }
     assert_equal "invalid long option: ---long", e.message
-    
-    e = assert_raises(ArgumentError) { longify("1") }
-    assert_equal "invalid long option: --1", e.message
     
     e = assert_raises(ArgumentError) { longify("") }
     assert_equal "invalid long option: --", e.message

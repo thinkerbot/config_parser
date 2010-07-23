@@ -41,17 +41,14 @@ class OptionTest < Test::Unit::TestCase
     e = assert_raises(ArgumentError) { Option.new(:long => '') }
     assert_equal "invalid long option: --", e.message
     
-    e = assert_raises(ArgumentError) { Option.new(:long => '1') }
-    assert_equal "invalid long option: --1", e.message
-    
     e = assert_raises(ArgumentError) { Option.new(:long => '---long') }
     assert_equal "invalid long option: ---long", e.message
     
     e = assert_raises(ArgumentError) { Option.new(:short => '--long') }
     assert_equal "invalid short option: --long", e.message
     
-    e = assert_raises(ArgumentError) { Option.new(:short => '1') }
-    assert_equal "invalid short option: -1", e.message
+    e = assert_raises(ArgumentError) { Option.new(:short => '.') }
+    assert_equal "invalid short option: -.", e.message
     
     e = assert_raises(ArgumentError) { Option.new(:short => '') }
     assert_equal "invalid short option: -", e.message
