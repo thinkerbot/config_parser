@@ -385,10 +385,13 @@ class ConfigParser
         attrs[:arg_name] = $3 if $3
       
       when SWITCH
-        attrs[:long] = "--#{$2}"
-        attrs[:negative_long] = "--#{$1}-#{$2}"
+        attrs[:long] = $1 ? "--#{$1}:#{$3}" : "--#{$3}"
+        attrs[:negative_long] = $1 ? "--#{$1}:#{$2}-#{$3}" : "--#{$2}-#{$3}"
         attrs[:type] = :switch
-        raise ArgumentError.new("arg_name specified for switch: #{$3}") if $3
+        raise ArgumentError.new("arg_name specified for switch: #{$4}") if $4
+      
+      when /\A-/
+        raise ArgumentError.new("invalid switch: #{arg.inspect}")
         
       else
         attrs[:desc] = arg

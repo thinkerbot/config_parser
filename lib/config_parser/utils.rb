@@ -7,42 +7,60 @@ class ConfigParser
     # A format string used by to_s
     LINE_FORMAT = "%-36s %-43s"
     
+    # Matches an option word.  Option words must start with a word character
+    # and may contain any characters except = and whitespace.
+    OPTWORD = /\w[^=\s]*?/
+    
+    # Matches both long and short option declarations (ex: '-o', '-o VALUE',
+    # '--opt VALUE').  After the match:
+    #
+    #   $1:: the option name
+    #   $2:: the option prefix ('-' or '--')
+    #   $3:: the arg_name, if present
+    #
+    OPTION = /\A((-{1,2})#{OPTWORD})(?:[=\s]\s*(.*))?\z/
+    
+    # Matches switch declarations (ex: '--[no-]opt', '--nest:[no-]opt'). 
+    # After the match:
+    # 
+    #   $1:: the nesting prefix ('nest')
+    #   $2:: the negative prefix ('no')
+    #   $3:: the long option name ('opt')
+    #   $4:: the arg_name, if present
+    #
+    SWITCH = /\A--(?:(#{OPTWORD}):)?\[(#{OPTWORD})-\](#{OPTWORD})(?:[=\s]\s*(.*))?\z/
+    
     # The option break argument
     OPTION_BREAK = "--"
     
-    OPTION = /\A((-{1,2})\w.*?)(?:\s+(.*))?\z/
-    SWITCH = /\A--\[(\w.*?)-\](\w.*?)(?:\s+(.*))?\z/
-    
-    # Matches a nested long option, with or without a value
-    # (ex: '--opt', '--nested:opt', '--opt=value').  After 
-    # the match:
+    # Matches a nested long option, with or without a value (ex: '--opt',
+    # '--nested:opt', '--opt=value').  After the match:
     #
     #   $1:: the switch
     #   $2:: the value
     #
-    LONG_OPTION = /^(--\w.*?)(?:=(.*))?$/
+    LONG_OPTION = /\A(--\w\S*?)(?:=(.*))?\z/
 
-    # Matches a nested short option, with or without a value
-    # (ex: '-o', '-n:o', '-o=value').  After the match:
+    # Matches a nested short option, with or without a value (ex: '-o',
+    # '-n:o', '-o=value').  After the match:
     #
     #   $1:: the switch
     #   $2:: the value
     #
-    SHORT_OPTION = /^(-\w(?::\w)*)(?:=(.*))?$/
+    SHORT_OPTION = /\A(-\w(?::\w)*)(?:=(.*))?\z/
 
-    # Matches the alternate syntax for short options
-    # (ex: '-n:ovalue', '-ovalue').  After the match:
+    # Matches the alternate syntax for short options (ex: '-n:ovalue',
+    # '-ovalue').  After the match:
     #
     #   $1:: the switch
     #   $2:: the value
     #
-    ALT_SHORT_OPTION = /^(-\w(?::\w)*)(.+)$/
+    ALT_SHORT_OPTION = /\A(-\w(?::\w)*)(.+)\z/
     
-    # Turns the input string into a short-format option.  Raises
-    # an error if the option does not match SHORT_OPTION.  Nils
-    # are returned directly.
+    # Turns the input string into a short-format option.  Raises an error if
+    # the option does not match SHORT_OPTION.  Nils are returned directly.
     #
-    #   shortify("-o")         # => '-o'
+    #   shortify('-o')         # => '-o'
     #   shortify(:o)           # => '-o'
     #
     def shortify(str)
@@ -56,11 +74,11 @@ class ConfigParser
       str
     end
 
-    # Turns the input string into a long-format option.  Underscores
-    # are converted to hyphens. Raises an error if the option does
-    # not match LONG_OPTION.  Nils are returned directly.
+    # Turns the input string into a long-format option.  Underscores are
+    # converted to hyphens. Raises an error if the option does not match
+    # LONG_OPTION.  Nils are returned directly.
     #
-    #   longify("--opt")       # => '--opt'
+    #   longify('--opt')       # => '--opt'
     #   longify(:opt)          # => '--opt'
     #   longify(:opt_ion)      # => '--opt-ion'
     #
@@ -78,17 +96,17 @@ class ConfigParser
     
     # Adds a prefix onto the last nested segment of a long option.
     #
-    #   prefix_long("--opt", 'no-')         # => '--no-opt'
-    #   prefix_long("--nested:opt", 'no-')  # => '--nested:no-opt'
+    #   prefix_long('--opt', 'no-')         # => '--no-opt'
+    #   prefix_long('--nested:opt', 'no-')  # => '--nested:no-opt'
     #
     def prefix_long(switch, prefix, split_char=':')
-      switch = switch[2,switch.length-2] if switch =~ /^--/
+      switch = switch[2, switch.length-2] if switch =~ /^--/
       switch = switch.split(split_char)
       switch[-1] = "#{prefix}#{switch[-1]}"
       "--#{switch.join(':')}"
     end
     
-    # The wrapping algorithm is slightly modified from:
+    # A wrapping algorithm slightly modified from:
     # http://blog.macromates.com/2006/wrapping-text-with-regular-expressions/
     def wrap(line, cols=80, tabsize=2)
       line = line.gsub(/\t/, " " * tabsize) unless tabsize == nil
