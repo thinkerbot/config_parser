@@ -47,7 +47,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    SHORT_OPTION = /\A(-\w(?::\w)*)(?:=(.*))?\z/
+    SHORT_OPTION = /\A(-\w)(?:=(.*))?\z/
 
     # Matches the alternate syntax for short options (ex: '-n:ovalue',
     # '-ovalue').  After the match:
@@ -55,7 +55,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    ALT_SHORT_OPTION = /\A(-\w(?::\w)*)(.+)\z/
+    ALT_SHORT_OPTION = /\A(-\w)(.+)\z/
     
     # Turns the input string into a short-format option.  Raises an error if
     # the option does not match SHORT_OPTION.  Nils are returned directly.

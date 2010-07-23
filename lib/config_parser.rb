@@ -312,7 +312,7 @@ class ConfigParser
     argv = Shellwords.shellwords(argv) if argv.kind_of?(String)
     
     args = []
-    remainder = scan(argv) {|arg| args << arg}
+    remainder = scan(argv) {|arg| args << arg }
     args.concat(remainder)
     argv.replace(args)
     
@@ -335,7 +335,7 @@ class ConfigParser
         argv.unshift(arg) if preserve_option_break
         break
       end
-  
+      
       # split the arg...
       # switch= $1
       # value = $2
@@ -345,7 +345,7 @@ class ConfigParser
       unless option = @options[$1]
         raise "unknown option: #{$1 || arg}"
       end
-  
+      
       option.parse($1, $2, argv, config)
     end
     

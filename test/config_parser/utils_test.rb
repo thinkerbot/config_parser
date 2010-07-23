@@ -145,21 +145,12 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert_equal '-o', $1
     assert_equal '', $2
     
-    assert '-n:l:o=value' =~ r
-    assert_equal '-n:l:o', $1
-    assert_equal 'value', $2
-    
-    assert '-o=value=with=equals' =~ r
-    assert_equal '-o', $1
-    assert_equal 'value=with=equals', $2
-    
     # non-matching
     assert 'arg' !~ r
     assert '--o' !~ r
     assert '--' !~ r
     assert '-.' !~ r
     assert '-=value' !~ r
-    assert '-n:long' !~ r
   end
   
   #
@@ -171,10 +162,6 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     
     assert '-ovalue' =~ r
     assert_equal '-o', $1
-    assert_equal 'value', $2
-    
-    assert '-n:l:ovalue' =~ r
-    assert_equal '-n:l:o', $1
     assert_equal 'value', $2
     
     # non-matching

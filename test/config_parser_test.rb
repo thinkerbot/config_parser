@@ -298,6 +298,34 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal(["a", "b"], args)
   end
   
+  def test_parse_with_compact_short_syntax_picks_up_sequential_shorts
+    values = {}
+    c.on('-x') { values[:x] = true }
+    c.on('-y') { values[:y] = true }
+    
+    args = c.parse(["a", "-xy", "b"])
+    
+    assert_equal({:x => true, :y => true}, values)
+    assert_equal(["a", "b"], args)
+  end
+  
+  def test_parse_with_compact_short_syntax_gives_remainder_to_first_opt_taking_a_value
+    values = {}
+    c.on('-x VALUE') {|value| values[:x] = value }
+    c.on('-y') { values[:y] = true }
+    
+    args = c.parse(["a", "-xyz", "b"])
+
+    assert_equal({:x => 'yz'}, values)
+    assert_equal(["a", "b"], args)
+    
+    values.clear
+    args = c.parse(["a", "-yxz", "b"])
+    
+    assert_equal({:x => 'z', :y => true}, values)
+    assert_equal(["a", "b"], args)
+  end
+  
   def test_parse_raises_error_if_no_value_is_available
     c.on('--opt VALUE')
     e = assert_raises(RuntimeError) { c.parse(["--opt"]) }

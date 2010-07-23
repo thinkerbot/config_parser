@@ -31,7 +31,14 @@ class ConfigParser
     end
     
     def parse(switch, value, argv=[], config={})
-      raise "value specified for flag: #{switch}" if value
+      unless value.nil?
+        if switch == short
+          argv.unshift "-#{value}"
+        else
+          raise "value specified for flag: #{switch}"
+        end
+      end
+      
       assign(config, callback ? callback.call : true)
     end
     
