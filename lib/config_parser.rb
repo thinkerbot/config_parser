@@ -336,17 +336,20 @@ class ConfigParser
         break
       end
       
-      # split the arg...
-      # switch= $1
-      # value = $2
-      arg =~ LONG_OPTION || arg =~ SHORT_OPTION || arg =~ ALT_SHORT_OPTION 
-  
-      # lookup the option
-      unless option = @options[$1]
-        raise "unknown option: #{$1 || arg}"
+      switch, value = arg, nil
+      unless option = @options[switch]
+        switch, value = switch.split('=', 2)
+        
+        if value.nil? && switch[1] != ?-
+          switch, value = switch[0, 2], switch[2, switch.length - 2]
+        end
+        
+        unless option = @options[switch]
+          raise "unknown option: #{switch}"
+        end
       end
       
-      option.parse($1, $2, argv, config)
+      option.parse(switch, value, argv, config)
     end
     
     argv
@@ -379,28 +382,39 @@ class ConfigParser
     attrs = argv.last.kind_of?(Hash) ? argv.pop : {}
     
     argv.each do |arg|
-      case arg
-      when OPTION
-        attrs[$2.length == 1 ? :short : :long] = $1
-        attrs[:arg_name] = $3 if $3
+      if arg[0] != ?-
+        attrs[:desc] = arg
+        next
+      end
       
+      switch, arg_name = arg.split(/\s+/, 2)
+      
+      if arg_name
+        attrs[:arg_name] = arg_name
+      end
+      
+      case switch
       when SWITCH
-        attrs[:long] = $1 ? "--#{$1}:#{$3}" : "--#{$3}"
-        attrs[:negative_long] = $1 ? "--#{$1}:#{$2}-#{$3}" : "--#{$2}-#{$3}"
+        attrs[:long] = "--#{$1}#{$2}"
+        attrs[:negative_long] = "--#{$1}no-#{$2}"
         attrs[:type] = :switch
-        raise ArgumentError.new("arg_name specified for switch: #{$4}") if $4
-      
-      when /\A-/
-        raise ArgumentError.new("invalid switch: #{arg.inspect}")
+        
+        if arg_name = attrs[:arg_name]
+          raise ArgumentError, "arg_name specified for switch: #{arg_name}"
+        end
+        
+      when LONG_OPTION
+        attrs[:long] = switch
+        
+      when SHORT_OPTION
+        attrs[:short] = switch
         
       else
-        attrs[:desc] = arg
+        raise ArgumentError.new("invalid switch: #{arg.inspect}")
       end
     end
     
-    type = attrs.delete(:type)
-    type ||= (attrs.has_key?(:arg_name) ? :option : :flag)
-    
+    type = attrs.delete(:type) || (attrs.has_key?(:arg_name) ? :option : :flag)
     clas = option_class(type)
     clas ? clas.new(attrs, &block) : nil
   end

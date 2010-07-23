@@ -7,29 +7,6 @@ class ConfigParser
     # A format string used by to_s
     LINE_FORMAT = "%-36s %-43s"
     
-    # Matches an option word.  Option words must start with a word character
-    # and may contain any characters except = and whitespace.
-    OPTWORD = /\w[^=\s]*?/
-    
-    # Matches both long and short option declarations (ex: '-o', '-o VALUE',
-    # '--opt VALUE').  After the match:
-    #
-    #   $1:: the option name
-    #   $2:: the option prefix ('-' or '--')
-    #   $3:: the arg_name, if present
-    #
-    OPTION = /\A((-{1,2})#{OPTWORD})(?:[=\s]\s*(.*))?\z/
-    
-    # Matches switch declarations (ex: '--[no-]opt', '--nest:[no-]opt'). 
-    # After the match:
-    # 
-    #   $1:: the nesting prefix ('nest')
-    #   $2:: the negative prefix ('no')
-    #   $3:: the long option name ('opt')
-    #   $4:: the arg_name, if present
-    #
-    SWITCH = /\A--(?:(#{OPTWORD}):)?\[(#{OPTWORD})-\](#{OPTWORD})(?:[=\s]\s*(.*))?\z/
-    
     # The option break argument
     OPTION_BREAK = "--"
     
@@ -39,7 +16,7 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    LONG_OPTION = /\A(--\w\S*?)(?:=(.*))?\z/
+    LONG_OPTION = /\A--.+\z/
 
     # Matches a nested short option, with or without a value (ex: '-o',
     # '-n:o', '-o=value').  After the match:
@@ -47,15 +24,17 @@ class ConfigParser
     #   $1:: the switch
     #   $2:: the value
     #
-    SHORT_OPTION = /\A(-\w)(?:=(.*))?\z/
-
-    # Matches the alternate syntax for short options (ex: '-n:ovalue',
-    # '-ovalue').  After the match:
+    SHORT_OPTION = /\A-.\z/
+    
+    # Matches switch declarations (ex: '--[no-]opt', '--nest:[no-]opt'). 
+    # After the match:
+    # 
+    #   $1:: the nesting prefix ('nest')
+    #   $2:: the negative prefix ('no')
+    #   $3:: the long option name ('opt')
+    #   $4:: the arg_name, if present
     #
-    #   $1:: the switch
-    #   $2:: the value
-    #
-    ALT_SHORT_OPTION = /\A(-\w)(.+)\z/
+    SWITCH = /\A--(.*?)\[no-\](.+)\z/
     
     # Turns the input string into a short-format option.  Raises an error if
     # the option does not match SHORT_OPTION.  Nils are returned directly.
@@ -68,7 +47,7 @@ class ConfigParser
   
       str = str.to_s
       str = "-#{str}" unless str[0] == ?-
-      unless str =~ SHORT_OPTION && $2 == nil
+      unless str =~ SHORT_OPTION
         raise ArgumentError, "invalid short option: #{str}"
       end
       str
@@ -86,9 +65,9 @@ class ConfigParser
       return nil if str == nil
   
       str = str.to_s
-      str = "--#{str}" unless str =~ /^--/
+      str = "--#{str}" unless str[0] == ?-
       str.gsub!(/_/, '-')
-      unless str =~ LONG_OPTION && $2 == nil
+      unless str =~ LONG_OPTION
         raise ArgumentError, "invalid long option: #{str}"
       end
       str
