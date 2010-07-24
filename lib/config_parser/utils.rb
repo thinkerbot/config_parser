@@ -7,37 +7,26 @@ class ConfigParser
     # A format string used by to_s
     LINE_FORMAT = "%-36s %-43s"
     
-    # The option break argument
+    # The default option break
     OPTION_BREAK = "--"
     
-    # Matches a nested long option, with or without a value (ex: '--opt',
-    # '--nested:opt', '--opt=value').  After the match:
-    #
-    #   $1:: the switch
-    #   $2:: the value
-    #
-    LONG_OPTION = /\A--.+\z/
+    # Matches a long flag
+    LONG_FLAG = /\A--.+\z/
 
-    # Matches a nested short option, with or without a value (ex: '-o',
-    # '-n:o', '-o=value').  After the match:
-    #
-    #   $1:: the switch
-    #   $2:: the value
-    #
-    SHORT_OPTION = /\A-.\z/
+    # Matches a short flag
+    SHORT_FLAG = /\A-.\z/
     
-    # Matches switch declarations (ex: '--[no-]opt', '--nest:[no-]opt'). 
+    # Matches a switch declaration (ex: '--[no-]opt', '--nest:[no-]opt').
     # After the match:
-    # 
+    #  
     #   $1:: the nesting prefix ('nest')
-    #   $2:: the negative prefix ('no')
-    #   $3:: the long option name ('opt')
-    #   $4:: the arg_name, if present
+    #   $2:: the long flag name ('opt')
     #
     SWITCH = /\A--(.*?)\[no-\](.+)\z/
     
-    # Turns the input string into a short-format option.  Raises an error if
-    # the option does not match SHORT_OPTION.  Nils are returned directly.
+    # Turns the input into a short flag by prefixing '-' (as needed). Raises
+    # an error if the input doesn't result in a short flag.   Nils are
+    # returned directly.
     #
     #   shortify('-o')         # => '-o'
     #   shortify(:o)           # => '-o'
@@ -47,29 +36,31 @@ class ConfigParser
   
       str = str.to_s
       str = "-#{str}" unless str[0] == ?-
-      unless str =~ SHORT_OPTION
-        raise ArgumentError, "invalid short option: #{str}"
+      
+      unless str =~ SHORT_FLAG
+        raise ArgumentError, "invalid short flag: #{str}"
       end
+      
       str
     end
 
-    # Turns the input string into a long-format option.  Underscores are
-    # converted to hyphens. Raises an error if the option does not match
-    # LONG_OPTION.  Nils are returned directly.
+    # Turns the input into a long flag by prefixing '--' (as needed).  Raises
+    # an error if the input doesn't result in a long flag.   Nils are
+    # returned directly.
     #
     #   longify('--opt')       # => '--opt'
     #   longify(:opt)          # => '--opt'
-    #   longify(:opt_ion)      # => '--opt-ion'
     #
     def longify(str)
       return nil if str == nil
   
       str = str.to_s
       str = "--#{str}" unless str[0] == ?-
-      str.gsub!(/_/, '-')
-      unless str =~ LONG_OPTION
-        raise ArgumentError, "invalid long option: #{str}"
+      
+      unless str =~ LONG_FLAG
+        raise ArgumentError, "invalid long flag: #{str}"
       end
+      
       str
     end
     

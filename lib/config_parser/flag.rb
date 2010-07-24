@@ -4,38 +4,39 @@ class ConfigParser
   class Flag
     include Utils
     
-    attr_reader :name
+    attr_reader :key
     
-    # The short switch mapping to self
+    # The short flag mapping to self
     attr_reader :short 
     
-    # The long switch mapping to self
+    # The long flag mapping to self
     attr_reader :long
     
     # The description printed by to_s
     attr_reader :desc
     
+    # A callback for processing values
     attr_reader :callback
     
     def initialize(attrs={}, &callback)
-      @name  = attrs[:name]
+      @key  = attrs[:key]
       @short = shortify(attrs[:short])
-      @long  = longify(attrs.has_key?(:long) ? attrs[:long] : name)
+      @long  = longify(attrs.has_key?(:long) ? attrs[:long] : key)
       @desc  = attrs[:desc]
       @callback = callback
     end
     
-    # Returns an array of non-nil switches mapping to self (ie [long, short]).
-    def switches
+    # Returns an array of non-nil flags mapping to self (ie [long, short]).
+    def flags
       [long, short].compact
     end
     
-    def parse(switch, value, argv=[], config={})
+    def parse(flag, value, argv=[], config={})
       unless value.nil?
-        if switch == short
+        if flag == short
           argv.unshift "-#{value}"
         else
-          raise "value specified for flag: #{switch}"
+          raise "value specified for flag: #{flag}"
         end
       end
       
@@ -43,7 +44,7 @@ class ConfigParser
     end
     
     def assign(config, value)
-      config[name] = value if name
+      config[key] = value if key
       value
     end
     

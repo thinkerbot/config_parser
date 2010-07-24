@@ -17,7 +17,7 @@ class OptionTest < Test::Unit::TestCase
     assert_equal nil, o.callback
   end
   
-  def test_initialization_with_options
+  def test_initialization_with_attributes
     b = lambda {}
     o = Option.new(:long => 'long', :short => 's', :desc => 'some desc', :arg_name => 'name', &b)
     assert_equal '--long', o.long
@@ -27,7 +27,7 @@ class OptionTest < Test::Unit::TestCase
     assert_equal b, o.callback
   end
   
-  def test_initialization_formats_switches_as_necessary
+  def test_initialization_formats_flags_as_necessary
     o = Option.new(:long => 'long', :short => 's')
     assert_equal '--long', o.long
     assert_equal '-s', o.short
@@ -37,35 +37,35 @@ class OptionTest < Test::Unit::TestCase
     assert_equal '-s', o.short
   end
   
-  def test_initialization_raises_error_for_bad_switches
+  def test_initialization_raises_error_for_bad_flags
     e = assert_raises(ArgumentError) { Option.new(:long => '') }
-    assert_equal "invalid long option: --", e.message
+    assert_equal "invalid long flag: --", e.message
     
     e = assert_raises(ArgumentError) { Option.new(:short => '--long') }
-    assert_equal "invalid short option: --long", e.message
+    assert_equal "invalid short flag: --long", e.message
     
     e = assert_raises(ArgumentError) { Option.new(:short => '') }
-    assert_equal "invalid short option: -", e.message
+    assert_equal "invalid short flag: -", e.message
   end
   
-  def test_options_may_be_initialized_with_no_long_option
+  def test_options_may_be_initialized_with_no_long_flag
     opt = Option.new
     assert_equal nil, opt.long
   end
   
   #
-  # switches test
+  # flags test
   #
   
-  def test_switches_returns_the_non_nil_long_and_short_options
+  def test_flags_returns_the_non_nil_long_and_short_flags
     opt = Option.new(:long => 'long')
-    assert_equal ["--long"], opt.switches
+    assert_equal ["--long"], opt.flags
     
     opt = Option.new(:long => 'long', :short => 's')
-    assert_equal ["--long", '-s'], opt.switches
+    assert_equal ["--long", '-s'], opt.flags
     
     opt = Option.new
-    assert_equal [], opt.switches
+    assert_equal [], opt.flags
   end
   
   #

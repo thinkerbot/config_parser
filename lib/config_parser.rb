@@ -1,6 +1,4 @@
 require 'config_parser/list'
-require 'config_parser/nest'
-
 autoload(:Shellwords, 'shellwords')
 
 # ConfigParser is the Configurable equivalent of 
@@ -118,16 +116,17 @@ class ConfigParser
   # which they were added.  Separators are also stored in the registry.
   attr_reader :registry
   
-  # A hash of (switch, Option) pairs mapping command line
-  # switches like '-s' or '--long' to the Option that
-  # handles them.
+  # A hash of (flag, Option) pairs mapping command line flags like '-s' or
+  # '--long' to the Option that handles them.
   attr_reader :options
   
   # The hash receiving configurations produced by parse.
   attr_accessor :config
   
+  # The argument to stop processing options
   attr_accessor :option_break
   
+  # Set to true to preserve the break argument
   attr_accessor :preserve_option_break
   
   # Initializes a new ConfigParser and passes it to the block, if given.
@@ -163,15 +162,13 @@ class ConfigParser
   end
 
   # Registers the option with self by adding opt to options and mapping the
-  # opt switches. Raises an error for conflicting switches.
+  # opt flags. Raises an error for conflicting flags.
   #
-  # If override is specified, options with conflicting switches are removed
-  # and no error is raised.  Note that this may remove multiple options.
+  # If override is specified, options with conflicting flags are removed and
+  # no error is raised.  Note that this may remove multiple options.
   def register(opt, override=false)
     if override
-      existing = opt.switches.collect do |switch|
-        @options.delete(switch)
-      end
+      existing = opt.flags.collect {|flag| @options.delete(flag) }
       @registry -= existing
     end
     
@@ -179,11 +176,11 @@ class ConfigParser
       @registry << opt
     end
     
-    opt.switches.each do |switch|
-      case @options[switch]
+    opt.flags.each do |flag|
+      case @options[flag]
       when opt then next
-      when nil then @options[switch] = opt
-      else raise ArgumentError, "switch is already mapped to a different option: #{switch}"
+      when nil then @options[flag] = opt
+      else raise ArgumentError, "flag is already mapped to a different option: #{flag}"
       end
     end
 
@@ -284,7 +281,7 @@ class ConfigParser
   # The :hidden type causes no configuration to be defined.  Raises an error if
   # key is already set by a different option.
   def define(key, default=nil, attrs={}, &block)
-    attrs = attrs.merge(:name => key, :default => default)
+    attrs = attrs.merge(:key => key, :default => default)
     type = attrs.delete(:type) || :option
     
     clas = option_class(type)
@@ -336,20 +333,25 @@ class ConfigParser
         break
       end
       
-      switch, value = arg, nil
-      unless option = @options[switch]
-        switch, value = switch.split('=', 2)
+      flag, value = arg, nil
+      
+      # try the flag directly
+      unless option = @options[flag]
         
-        if value.nil? && switch[1] != ?-
-          switch, value = switch[0, 2], switch[2, switch.length - 2]
+        # then try --opt=value syntax
+        flag, value = flag.split('=', 2)
+        
+        # then try -ovalue syntax
+        if value.nil? && flag[1] != ?-
+          flag, value = flag[0, 2], flag[2, flag.length - 2]
         end
         
-        unless option = @options[switch]
-          raise "unknown option: #{switch}"
+        unless option = @options[flag]
+          raise "unknown option: #{flag}"
         end
       end
       
-      option.parse(switch, value, argv, config)
+      option.parse(flag, value, argv, config)
     end
     
     argv
@@ -387,13 +389,13 @@ class ConfigParser
         next
       end
       
-      switch, arg_name = arg.split(/\s+/, 2)
+      flag, arg_name = arg.split(/\s+/, 2)
       
       if arg_name
         attrs[:arg_name] = arg_name
       end
       
-      case switch
+      case flag
       when SWITCH
         attrs[:long] = "--#{$1}#{$2}"
         attrs[:negative_long] = "--#{$1}no-#{$2}"
@@ -403,14 +405,14 @@ class ConfigParser
           raise ArgumentError, "arg_name specified for switch: #{arg_name}"
         end
         
-      when LONG_OPTION
-        attrs[:long] = switch
+      when LONG_FLAG
+        attrs[:long] = flag
         
-      when SHORT_OPTION
-        attrs[:short] = switch
+      when SHORT_FLAG
+        attrs[:short] = flag
         
       else
-        raise ArgumentError.new("invalid switch: #{arg.inspect}")
+        raise ArgumentError.new("invalid flag: #{arg.inspect}")
       end
     end
     

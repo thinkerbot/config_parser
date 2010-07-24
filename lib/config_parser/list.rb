@@ -14,12 +14,12 @@ class ConfigParser
     end
     
     def assign(config, value)
-      return unless name
-      array = (config[name] ||= [])
+      return unless key
+      array = (config[key] ||= [])
       array.concat(split ? value.split(split) : [value])
       
       if limit && array.length > limit
-        raise "too many assignments: #{name.inspect}"
+        raise "too many assignments: #{key.inspect}"
       end
       
       array

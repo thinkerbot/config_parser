@@ -68,10 +68,10 @@ class ConfigParserTest < Test::Unit::TestCase
     c.register(Option.new(:long => 'key', :short => 'k'))
     
     e = assert_raises(ArgumentError) { c.register(Option.new(:long => 'key')) }
-    assert_equal "switch is already mapped to a different option: --key", e.message
+    assert_equal "flag is already mapped to a different option: --key", e.message
     
     e = assert_raises(ArgumentError) { c.register(Option.new(:short => 'k')) }
-    assert_equal "switch is already mapped to a different option: -k", e.message
+    assert_equal "flag is already mapped to a different option: -k", e.message
   end
   
   def test_register_removes_conflicting_options_on_override

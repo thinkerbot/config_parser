@@ -15,12 +15,12 @@ class ConfigParser
     # (ex 'opt', 'o') and full switches ('--opt', '-o') are valid.
     def initialize(attrs={})
       super
-      @arg_name = attrs[:arg_name] || (name ? name.to_s.upcase : nil)
+      @arg_name = attrs[:arg_name] || (key ? key.to_s.upcase : nil)
     end
     
-    def parse(switch, value, argv=[], config={})
+    def parse(flag, value, argv=[], config={})
       if value.nil?
-        raise "no value provided for: #{switch}" if argv.empty?
+        raise "no value provided for: #{flag}" if argv.empty?
         value = argv.shift
       end
       assign(config, callback ? callback.call(value) : value)
