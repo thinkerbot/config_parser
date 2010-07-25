@@ -197,7 +197,7 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal({:flag => true, :switch => true, :list => ['one', 'two', 'three']}, psr.config)
   
     psr = ConfigParser.new
-    psr.add(:opt, false) {|input| input.reverse }
+    psr.add(:opt, 'default') {|input| input.reverse }
   
     psr.parse("--opt value")
     assert_equal({:opt => 'eulav'}, psr.config)

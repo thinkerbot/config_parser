@@ -166,6 +166,8 @@ class ConfigParser
   # If override is specified, options with conflicting flags are removed and
   # no error is raised.  Note that this may remove multiple options.
   def register(option, override=false)
+    return if option.nil?
+    
     if override
       existing = option.flags.collect {|flag| @options.delete(flag) }
       @registry -= existing
@@ -281,12 +283,12 @@ class ConfigParser
   #
   # The :hidden type causes no configuration to be defined.  Raises an error if
   # key is already set by a different option.
-  def add(key, default=nil, attrs={}, &block)
+  def add(key, default=nil, *args, &block)
+    attrs = args.last.kind_of?(Hash) ? args.pop : {}
     attrs = attrs.merge(:key => key, :default => default)
-    type = attrs.delete(:type) || :option
+    args << attrs
     
-    clas = option_class(type)
-    clas ? register(clas.new(attrs, &block)) : nil
+    on(*args, &block)
   end
   
   # Parses options from argv in a non-destructive manner and returns an
