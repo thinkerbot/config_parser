@@ -32,7 +32,7 @@ class ConfigParser
     #   shortify(:o)           # => '-o'
     #
     def shortify(str)
-      return nil if str == nil
+      return nil if str.nil?
   
       str = str.to_s
       str = "-#{str}" unless str[0] == ?-
@@ -52,7 +52,7 @@ class ConfigParser
     #   longify(:opt)          # => '--opt'
     #
     def longify(str)
-      return nil if str == nil
+      return nil if str.nil?
   
       str = str.to_s
       str = "--#{str}" unless str[0] == ?-

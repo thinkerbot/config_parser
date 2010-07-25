@@ -12,7 +12,7 @@ class OptionTest < Test::Unit::TestCase
     o = Option.new(:long => 'key')
     assert_equal '--key', o.long
     assert_equal nil, o.short
-    assert_equal nil, o.arg_name
+    assert_equal 'VALUE', o.arg_name
     assert_equal nil, o.desc
     assert_equal nil, o.callback
   end
@@ -123,7 +123,7 @@ class OptionTest < Test::Unit::TestCase
     opt = Option.new(:long => 'long', :desc => "a really long description of key " * 4)
     
     expected = %q{
-        --long                       a really long description of key a really  
+        --long VALUE                 a really long description of key a really  
                                      long description of key a really long      
                                      description of key a really long           
                                      description of key                         }
@@ -138,7 +138,7 @@ class OptionTest < Test::Unit::TestCase
       :desc => "a really long description of key " * 2)
       
     expected = %q{
-    -s, --a:nested:and-really-freaky-long-option                                
+    -s, --a:nested:and-really-freaky-long-option VALUE                          
                                      a really long description of key a really  
                                      long description of key                    }
                                      

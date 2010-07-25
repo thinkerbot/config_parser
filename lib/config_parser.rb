@@ -139,7 +139,6 @@ class ConfigParser
     @registry = []
     @options = {}
     @config = config
-    
     @option_break = opts[:option_break]
     @preserve_option_break = opts[:preserve_option_break]
     
@@ -166,25 +165,27 @@ class ConfigParser
   #
   # If override is specified, options with conflicting flags are removed and
   # no error is raised.  Note that this may remove multiple options.
-  def register(opt, override=false)
+  def register(option, override=false)
     if override
-      existing = opt.flags.collect {|flag| @options.delete(flag) }
+      existing = option.flags.collect {|flag| @options.delete(flag) }
       @registry -= existing
     end
     
-    unless @registry.include?(opt)
-      @registry << opt
+    unless @registry.include?(option)
+      @registry << option
     end
     
-    opt.flags.each do |flag|
-      case @options[flag]
-      when opt then next
-      when nil then @options[flag] = opt
-      else raise ArgumentError, "flag is already mapped to a different option: #{flag}"
+    option.flags.each do |flag|
+      current = @options[flag]
+      
+      if current && current != option
+        raise ArgumentError, "flag is already mapped to a different option: #{flag}"
       end
+      
+      @options[flag] = option
     end
-
-    opt
+    
+    option
   end
   
   # Constructs an Option using args and registers it with self.  Args may
@@ -280,7 +281,7 @@ class ConfigParser
   #
   # The :hidden type causes no configuration to be defined.  Raises an error if
   # key is already set by a different option.
-  def define(key, default=nil, attrs={}, &block)
+  def add(key, default=nil, attrs={}, &block)
     attrs = attrs.merge(:key => key, :default => default)
     type = attrs.delete(:type) || :option
     
@@ -416,7 +417,7 @@ class ConfigParser
       end
     end
     
-    type = attrs.delete(:type) || (attrs.has_key?(:arg_name) ? :option : :flag)
+    type = attrs.delete(:type) || (attrs[:arg_name] || attrs[:default] ? :option : :flag)
     clas = option_class(type)
     clas ? clas.new(attrs, &block) : nil
   end

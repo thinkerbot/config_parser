@@ -8,14 +8,14 @@ Gem::Specification.new do |s|
   s.email = 'simon.a.chiang@gmail.com'
   s.homepage = ''
   s.platform = Gem::Platform::RUBY
-  s.summary = ''
+  s.summary = 'Parse command-line options into a configuration hash'
   s.require_path = 'lib'
   s.rubyforge_project = ''
   s.has_rdoc = true
-  s.rdoc_options.concat %W{--main README -S -N --title Config\ Parser}
+  s.rdoc_options.concat %W{--main README -S -N --title ConfigParser}
   
+  # dependencies
   s.add_dependency('lazydoc', '~> 1.0')
-  # s.add_development_dependency('tap-test')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{
@@ -26,5 +26,12 @@ Gem::Specification.new do |s|
   
   # list the files you want to include here.
   s.files = %W{
+    lib/config_parser.rb
+    lib/config_parser/flag.rb
+    lib/config_parser/list.rb
+    lib/config_parser/option.rb
+    lib/config_parser/switch.rb
+    lib/config_parser/utils.rb
+    lib/config_parser/version.rb
   }
 end

@@ -177,50 +177,50 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   #
-  # define test
+  # add test
   #
   
-  def test_define_documentation
+  def test_add_documentation
     psr = ConfigParser.new
-    psr.define(:one, 'default')
-    psr.define(:two, 'default', :long => '--long', :short => '-s')
+    psr.add(:one, 'default')
+    psr.add(:two, 'default', :long => '--long', :short => '-s')
   
     psr.parse("--one one --long two")
     assert_equal({:one => 'one', :two => 'two'}, psr.config)
   
     psr = ConfigParser.new
-    psr.define(:flag, false, :type => :flag)
-    psr.define(:switch, false, :type => :switch)
-    psr.define(:list, [], :type => :list)
+    psr.add(:flag, false, :type => :flag)
+    psr.add(:switch, false, :type => :switch)
+    psr.add(:list, [], :type => :list)
   
     psr.parse("--flag --switch --list one --list two --list three")
     assert_equal({:flag => true, :switch => true, :list => ['one', 'two', 'three']}, psr.config)
   
     psr = ConfigParser.new
-    psr.define(:opt, false) {|input| input.reverse }
+    psr.add(:opt, false) {|input| input.reverse }
   
     psr.parse("--opt value")
     assert_equal({:opt => 'eulav'}, psr.config)
   end
   
-  def test_define_adds_and_returns_an_option
-    opt = c.define(:key)
+  def test_add_adds_and_returns_an_option
+    opt = c.add(:key)
     assert_equal [opt], c.registry
   end
   
-  def test_define_does_not_add_or_generate_an_option_if_type_is_hidden
-    assert_equal nil, c.define(:key, 'value', :type => :hidden)
+  def test_add_does_not_add_or_generate_an_option_if_type_is_hidden
+    assert_equal nil, c.add(:key, 'value', :type => :hidden)
     assert_equal [], c.registry
   end
   
-  def test_define_does_not_add_a_long_option_if_nil
-    opt = c.define(:key, 'value', :long => nil, :short => :s)
+  def test_add_does_not_add_a_long_option_if_nil
+    opt = c.add(:key, 'value', :long => nil, :short => :s)
     assert_equal nil, opt.long
   end
   
-  def test_define_does_not_modify_input_attributes
+  def test_add_does_not_modify_input_attributes
     attrs = {}
-    c.define(:key, 'value', attrs)
+    c.add(:key, 'value', attrs)
     assert_equal({}, attrs)
   end
   
@@ -419,7 +419,7 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   def test_parse_sets_config_values
-    c.define('opt', 'default')
+    c.add('opt', 'default')
     args = c.parse(["a", "--opt", "value", "b"])
     
     assert_equal({"opt" => "value"}, c.config)
@@ -506,7 +506,7 @@ class ConfigParserTest < Test::Unit::TestCase
   #
   
   def test_parse_list
-    c.define('opt', [], :type => :list)
+    c.add('opt', [], :type => :list)
     args = c.parse(["a", "--opt", "one", "--opt", "two", "--opt", "three", "b"])
     
     assert_equal({"opt" => ["one", "two", "three"]}, c.config)
@@ -514,7 +514,7 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   def test_parse_list_with_split
-    c.define('opt', [], :type => :list, :split => ',')
+    c.add('opt', [], :type => :list, :split => ',')
     args = c.parse(["a", "--opt", "one,two", "--opt", "three", "b"])
     
     assert_equal({"opt" => ["one", "two", "three"]}, c.config)
@@ -522,7 +522,7 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   def test_parse_list_with_limit_raises_error_for_too_many_entries
-    c.define('opt', [], :type => :list, :n => 1)
+    c.add('opt', [], :type => :list, :n => 1)
     e = assert_raises(RuntimeError) { c.parse(["a", "--opt", "one", "--opt", "three", "b"]) }
     assert_equal "too many assignments: \"opt\"", e.message
   end
@@ -571,9 +571,9 @@ class ConfigParserTest < Test::Unit::TestCase
   def test_to_s
     c.on('--opt OPT', '-o', 'desc')
     c.separator "specials:"
-    c.define('switch', true, :type => :switch)
-    c.define('flag', true, :type => :flag)
-    c.define('list', true, :type => :list, :long => '--list', :split => ',')
+    c.add('switch', true, :type => :switch)
+    c.add('flag', true, :type => :flag)
+    c.add('list', true, :type => :list, :long => '--list', :split => ',')
     
     expected = %Q{
     -o, --opt OPT                    desc
@@ -586,9 +586,9 @@ specials:
   end
   
   def test_to_s_for_options_without_long
-    c.define('flag', true, :long => nil, :short => :f, :type => :flag, :desc => 'desc')
-    c.define('opt', true, :long => nil, :short => :o, :arg_name => 'OPT', :desc => 'desc')
-    c.define('alt', true, :desc => 'desc')
+    c.add('flag', true, :long => nil, :short => :f, :type => :flag, :desc => 'desc')
+    c.add('opt', true, :long => nil, :short => :o, :arg_name => 'OPT', :desc => 'desc')
+    c.add('alt', true, :desc => 'desc')
     expected = %Q{
     -f                               desc
     -o OPT                           desc

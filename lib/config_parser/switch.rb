@@ -21,9 +21,10 @@ class ConfigParser
       [long, negative_long, short].compact
     end
     
-    # Calls the block with false if the negative long is specified, or calls
-    # the block with true in all other cases.  Raises an error if a value is
-    # specified.
+    # Assigns true into config for positive flags and false for negative
+    # flags.  If specified, the callback is called with the boolean to
+    # determine the assigned value.  Raises an error if a value is provided
+    # (switches take none).
     def parse(flag, value, argv=[], config={})
       raise "value specified for switch: #{flag}" if value
       value = flag == negative_long ? false : true

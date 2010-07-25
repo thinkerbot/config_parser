@@ -4,6 +4,7 @@ class ConfigParser
   class Flag
     include Utils
     
+    # The config key
     attr_reader :key
     
     # The short flag mapping to self
@@ -31,6 +32,35 @@ class ConfigParser
       [long, short].compact
     end
     
+    # Assigns true into config and raises an error if a value is provided
+    # (flags take none).  The callback will be called if specified to provide
+    # the assigned value.
+    #
+    # Note this is the entry point for handling different types of
+    # configuration flags.
+    #
+    #--
+    # Implementation Note
+    #
+    # The compact syntax for short flags is handled through parse by
+    # unshifting remaining shorts (ie value) back onto argv.  This allows
+    # shorts that consume a value to take the remainder as needed.  As an
+    # example to clarify, assume -x -y are flags where -x takes a value and -y
+    # does not.  These are equivalent:
+    #
+    #   -x value -y
+    #   -xvalue -y
+    #   -y -xvalue
+    #   -yxvalue
+    #      
+    # Whereas this is not:
+    #
+    #   -xyvalue                   # x receives 'yvalue' not 'value'
+    #
+    # Parse handles the compact short syntax splitting '-yxvalue' into '-y',
+    # 'xvalue'. Then '-y' determines whether or not it needs a values; if not
+    # '-xvalue' gets unshifted to argv and parsing continues as if '-y
+    # -xvalue' were the original arguments.
     def parse(flag, value, argv=[], config={})
       unless value.nil?
         if flag == short
@@ -43,6 +73,7 @@ class ConfigParser
       assign(config, callback ? callback.call : true)
     end
     
+    # Assign the value to the config hash, if key is set.  Returns value.
     def assign(config, value)
       config[key] = value if key
       value
