@@ -181,7 +181,7 @@ class ConfigParser
       current = @options[flag]
       
       if current && current != option
-        raise ArgumentError, "flag is already mapped to a different option: #{flag}"
+        raise ArgumentError, "already mapped to a different option: #{flag}"
       end
       
       @options[flag] = option
@@ -370,13 +370,15 @@ class ConfigParser
   
   protected
   
-  def option_class(type)
+  def option_class(attrs) # :nodoc:
+    type = attrs[:type] || guess_type(attrs)
+    
     case type
     when :option then Option
     when :flag   then Flag
     when :switch then Switch
     when :list   then List
-    when :hidden then nil
+    when Class   then type
     else raise "unknown option type: #{type}"
     end
   end
@@ -385,42 +387,7 @@ class ConfigParser
   # by on and on! to generate options
   def new_option(argv, &block) # :nodoc:
     attrs = argv.last.kind_of?(Hash) ? argv.pop : {}
-    
-    argv.each do |arg|
-      if arg[0] != ?-
-        attrs[:desc] = arg
-        next
-      end
-      
-      flag, arg_name = arg.split(/\s+/, 2)
-      
-      if arg_name
-        attrs[:arg_name] = arg_name
-      end
-      
-      case flag
-      when SWITCH
-        attrs[:long] = "--#{$1}#{$2}"
-        attrs[:negative_long] = "--#{$1}no-#{$2}"
-        attrs[:type] = :switch
-        
-        if arg_name = attrs[:arg_name]
-          raise ArgumentError, "arg_name specified for switch: #{arg_name}"
-        end
-        
-      when LONG_FLAG
-        attrs[:long] = flag
-        
-      when SHORT_FLAG
-        attrs[:short] = flag
-        
-      else
-        raise ArgumentError.new("invalid flag: #{arg.inspect}")
-      end
-    end
-    
-    type = attrs.delete(:type) || (attrs[:arg_name] || attrs[:default] ? :option : :flag)
-    clas = option_class(type)
-    clas ? clas.new(attrs, &block) : nil
+    attrs = attrs.merge parse_attrs(argv)
+    option_class(attrs).new(attrs, &block)
   end
 end

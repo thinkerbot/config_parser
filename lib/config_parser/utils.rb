@@ -82,5 +82,54 @@ class ConfigParser
       line = line.gsub(/\t/, " " * tabsize) unless tabsize == nil
       line.gsub(/(.{1,#{cols}})( +|$\r?\n?)|(.{1,#{cols}})/, "\\1\\3\n").split(/\s*?\n/)
     end
+    
+    def parse_attrs(argv)
+      attrs={}
+      
+      argv.each do |arg|
+        if arg[0] != ?-
+          attrs[:desc] = arg
+          next
+        end
+
+        flag, arg_name = arg.split(/\s+/, 2)
+
+        if arg_name
+          attrs[:arg_name] = arg_name
+        end
+
+        case flag
+        when SWITCH
+          attrs[:long] = "--#{$1}#{$2}"
+          attrs[:negative_long] = "--#{$1}no-#{$2}"
+
+          if arg_name
+            raise ArgumentError, "arg_name specified for switch: #{arg_name}"
+          end
+
+        when LONG_FLAG
+          attrs[:long] = flag
+
+        when SHORT_FLAG
+          attrs[:short] = flag
+
+        else
+          raise ArgumentError.new("invalid flag: #{arg.inspect}")
+        end
+      end
+
+      attrs
+    end
+    
+    def guess_type(attrs) # :nodoc:
+      case
+      when attrs[:negative_long]
+        :switch
+      when attrs[:arg_name] || attrs[:default]
+        :option
+      else
+        :flag
+      end
+    end
   end
 end

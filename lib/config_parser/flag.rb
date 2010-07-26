@@ -7,6 +7,9 @@ class ConfigParser
     # The config key
     attr_reader :key
     
+    # The default value
+    attr_reader :default
+    
     # The short flag mapping to self
     attr_reader :short 
     
@@ -20,7 +23,8 @@ class ConfigParser
     attr_reader :callback
     
     def initialize(attrs={}, &callback)
-      @key  = attrs[:key]
+      @key   = attrs[:key]
+      @default = attrs[:default]
       @short = shortify(attrs[:short])
       @long  = longify(attrs.has_key?(:long) ? attrs[:long] : key)
       @desc  = attrs[:desc]
@@ -70,7 +74,7 @@ class ConfigParser
         end
       end
       
-      assign(config, callback ? callback.call : true)
+      assign(config, callback ? callback.call : default.nil? ? false : default)
     end
     
     # Assign the value to the config hash, if key is set.  Returns value.

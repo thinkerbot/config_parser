@@ -10,7 +10,9 @@ class ConfigParser
     attr_reader :negative_long
     
     def initialize(attrs={})
+      attrs[:default] = true unless attrs.has_key?(:default)
       super
+      
       raise ArgumentError, "no long specified" unless long
       @negative_long = attrs[:negative_long] || prefix_long(long, 'no-')
     end
@@ -27,7 +29,7 @@ class ConfigParser
     # (switches take none).
     def parse(flag, value, argv=[], config={})
       raise "value specified for switch: #{flag}" if value
-      value = flag == negative_long ? false : true
+      value = (flag == negative_long ? !default : default)
       assign(config, callback ? callback.call(value) : value)
     end
 

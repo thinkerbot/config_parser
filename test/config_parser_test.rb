@@ -68,16 +68,16 @@ class ConfigParserTest < Test::Unit::TestCase
     c.register(Option.new(:long => 'key', :short => 'k'))
     
     e = assert_raises(ArgumentError) { c.register(Option.new(:long => 'key')) }
-    assert_equal "flag is already mapped to a different option: --key", e.message
+    assert_equal 'already mapped to a different option: --key', e.message
     
     e = assert_raises(ArgumentError) { c.register(Option.new(:short => 'k')) }
-    assert_equal "flag is already mapped to a different option: -k", e.message
+    assert_equal 'already mapped to a different option: -k', e.message
   end
   
   def test_register_removes_conflicting_options_on_override
-    o1 = Option.new(:long => 'key')
-    o2 = Option.new(:short => 'k')
-    o3 = Option.new(:long => 'non-conflict', :short => 'n')
+    o1 = Option.new(:long => 'one')
+    o2 = Option.new(:short => 'a')
+    o3 = Option.new(:long => 'two', :short => 'b')
     
     c.register(o1)
     c.register(o2)
@@ -85,25 +85,25 @@ class ConfigParserTest < Test::Unit::TestCase
         
     assert_equal [o1, o2, o3], c.registry
     assert_equal({
-      '--key' => o1,
-      '-k' => o2,
-      '--non-conflict' => o3,
-      '-n' => o3
+      '--one' => o1,
+      '-a'    => o2,
+      '--two' => o3,
+      '-b'    => o3
     }, c.options)
     
-    o4 = Option.new(:long => 'key', :short => 'k')
+    o4 = Option.new(:long => 'one', :short => 'a')
     c.register(o4, true)
     
     assert_equal [o3, o4], c.registry
     assert_equal({
-      '--key' => o4,
-      '-k' => o4,
-      '--non-conflict' => o3,
-      '-n' => o3
+      '--one' => o4,
+      '-a'    => o4,
+      '--two' => o3,
+      '-b'    => o3
     }, c.options)
   end
   
-  def test_register_does_not_raises_errors_for_registering_an_option_twice
+  def test_register_ignores_options_that_have_already_been_registered
     opt = Option.new(:long => 'key', :short => 'k')
     c.register(opt)
     c.register(opt)
@@ -125,27 +125,47 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   def test_on_uses_a_trailing_hash_for_options
-    opt = c.on("-s", :long => 'long')
+    opt = c.on('-s', :long => 'long')
     assert_equal '-s', opt.short
     assert_equal '--long', opt.long
   end
   
   def test_on_parses_option_attributes
-    opt = c.on("-s", "--long ARG_NAME", "Description for the Option")
+    opt = c.on('-s', '--long ARGNAME', 'option description')
     assert_equal '-s', opt.short
     assert_equal '--long', opt.long
-    assert_equal 'ARG_NAME', opt.arg_name
-    assert_equal 'Description for the Option', opt.desc
-    
-    opt = c.on("--compound-long")
-    assert_equal nil, opt.short
-    assert_equal '--compound-long', opt.long
-    assert_equal nil, opt.desc
+    assert_equal 'ARGNAME', opt.arg_name
+    assert_equal 'option description', opt.desc
   end
   
-  def test_on_creates_Switch_option_with_switch_long
+  def test_on_creates_option_for_long_options_with_arg_name
+    opt = c.on('--long ARGNAME')
+    assert_equal ConfigParser::Option, opt.class
+  end
+  
+  def test_on_creates_option_for_short_options_with_arg_name
+    opt = c.on('-s ARGNAME')
+    assert_equal ConfigParser::Option, opt.class
+  end
+  
+  def test_on_creates_option_for_manually_specified_argname
+    opt = c.on(:arg_name => 'ARGNAME')
+    assert_equal ConfigParser::Option, opt.class
+  end
+  
+  def test_on_creates_flag_option_for_options_without_arg_name
+    opt = c.on('--long')
+    assert_equal ConfigParser::Flag, opt.class
+  end
+  
+  def test_on_creates_switch_option_with_switch_long
     opt = c.on('--[no-]switch')
     assert_equal ConfigParser::Switch, opt.class
+  end
+  
+  def test_on_allows_manual_specification_of_type
+    opt = c.on('--[no-]switch', '-s ARGNAME', :type => :list)
+    assert_equal ConfigParser::List, opt.class
   end
   
   #
@@ -153,26 +173,26 @@ class ConfigParserTest < Test::Unit::TestCase
   #
   
   def test_on_bang_overrides_conflicting_options
-    o1 = c.on! "--key"
-    o2 = c.on! "-k"
-    o3 = c.on! "-n", "--non-conflict"
+    o1 = c.on! '--one'
+    o2 = c.on! '-a'
+    o3 = c.on! '-b', '--two'
     
     assert_equal [o1, o2, o3], c.registry
     assert_equal({
-      '--key' => o1,
-      '-k' => o2,
-      '--non-conflict' => o3,
-      '-n' => o3
+      '--one' => o1,
+      '-a'    => o2,
+      '--two' => o3,
+      '-b'    => o3
     }, c.options)
     
-    o4 = c.on! "-k", "--key"
+    o4 = c.on! '-a', '--one'
     
     assert_equal [o3, o4], c.registry
     assert_equal({
-      '--key' => o4,
-      '-k' => o4,
-      '--non-conflict' => o3,
-      '-n' => o3
+      '--one' => o4,
+      '-a'    => o4,
+      '--two' => o3,
+      '-b'    => o3
     }, c.options)
   end
   
@@ -194,7 +214,7 @@ class ConfigParserTest < Test::Unit::TestCase
     psr.add(:list, [], :type => :list)
   
     psr.parse("--flag --switch --list one --list two --list three")
-    assert_equal({:flag => true, :switch => true, :list => ['one', 'two', 'three']}, psr.config)
+    assert_equal({:flag => false, :switch => false, :list => ['one', 'two', 'three']}, psr.config)
   
     psr = ConfigParser.new
     psr.add(:opt, 'default') {|input| input.reverse }
@@ -208,20 +228,25 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal [opt], c.registry
   end
   
-  def test_add_does_not_add_or_generate_an_option_if_type_is_hidden
-    assert_equal nil, c.add(:key, 'value', :type => :hidden)
-    assert_equal [], c.registry
-  end
-  
-  def test_add_does_not_add_a_long_option_if_nil
+  def test_add_sets_key_and_default_into_attributes
     opt = c.add(:key, 'value', :long => nil, :short => :s)
+    
+    assert_equal :key, opt.key
+    assert_equal 'value', opt.default
     assert_equal nil, opt.long
+    assert_equal '-s', opt.short
   end
   
-  def test_add_does_not_modify_input_attributes
-    attrs = {}
-    c.add(:key, 'value', attrs)
-    assert_equal({}, attrs)
+  def test_add_parses_args_like_on
+    opt = c.add(:key, 'value', '--long', '-s', :type => :list)
+    assert_equal '--long', opt.long
+    assert_equal '-s', opt.short
+    assert_equal ConfigParser::List, opt.class
+  end
+  
+  def test_add_defaults_to_option_type
+    opt = c.add(:key, 'value', '--long')
+    assert_equal ConfigParser::Option, opt.class
   end
   
   #

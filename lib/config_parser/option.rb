@@ -9,13 +9,9 @@ class ConfigParser
     # The argument name printed by to_s.
     attr_reader :arg_name
     
-    # The default value
-    attr_reader :default
-    
     def initialize(attrs={})
       super
       @arg_name = attrs[:arg_name] || (key ? key.to_s.upcase : DEFAULT_ARGNAME)
-      @default = attrs[:default]
     end
     
     # Parse the flag and value.  If no value is provided and a value is
