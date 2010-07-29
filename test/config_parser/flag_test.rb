@@ -69,4 +69,25 @@ class FlagTest < Test::Unit::TestCase
     flag = Flag.new
     assert_equal [], flag.flags
   end
+  
+  #
+  # assign test
+  #
+  
+  def test_assign_returns_empty_hash_if_key_is_not_set
+    assert_equal({}, Flag.new.assign('value'))
+  end
+  
+  def test_assign_returns_hash_with_value_assigned_to_key_if_set
+    flag = Flag.new :key => 'key'
+    assert_equal({'key' => 'value'}, flag.assign('value'))
+  end
+  
+  def test_assign_allows_specification_of_config
+    flag = Flag.new :key => 'key'
+    config = {}
+    flag.assign('value', config)
+    
+    assert_equal({'key' => 'value'}, config)
+  end
 end

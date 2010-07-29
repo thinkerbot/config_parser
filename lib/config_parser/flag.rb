@@ -74,13 +74,16 @@ class ConfigParser
         end
       end
       
-      assign(config, callback ? callback.call : default.nil? ? false : default)
+      value = callback ? callback.call : (default.nil? ? false : default)
+      assign(value, config)
+      
+      value
     end
     
     # Assign the value to the config hash, if key is set.  Returns value.
-    def assign(config, value)
+    def assign(value, config={})
       config[key] = value if key
-      value
+      config
     end
     
     # Formats self as a help string for use on the command line.

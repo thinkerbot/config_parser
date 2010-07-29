@@ -29,8 +29,12 @@ class ConfigParser
     # (switches take none).
     def parse(flag, value, argv=[], config={})
       raise "value specified for switch: #{flag}" if value
+      
       value = (flag == negative_long ? !default : default)
-      assign(config, callback ? callback.call(value) : value)
+      value = callback.call(value) if callback
+      
+      assign(value, config)
+      value
     end
 
     private

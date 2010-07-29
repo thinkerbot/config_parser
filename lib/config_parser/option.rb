@@ -23,7 +23,11 @@ class ConfigParser
           raise "no value provided for: #{flag}"
         end
       end
-      assign(config, callback ? callback.call(value) : value)
+      
+      value = callback.call(value) if callback
+      assign(value, config)
+      
+      value
     end
     
     private
