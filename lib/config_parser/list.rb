@@ -24,7 +24,8 @@ class ConfigParser
     # is not set.  Returns value (the input, not the array).
     def assign(value, config={})
       if key
-        array = (config[key] ||= [])
+        nest_config = nest(config)
+        array = (nest_config[key] ||= [])
         array.concat(split ? value.split(split) : [value])
       
         if limit && array.length > limit

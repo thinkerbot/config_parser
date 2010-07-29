@@ -7,6 +7,9 @@ class ConfigParser
     # The config key
     attr_reader :key
     
+    # The nesting keys
+    attr_reader :nest_keys
+    
     # The default value
     attr_reader :default
     
@@ -24,6 +27,7 @@ class ConfigParser
     
     def initialize(attrs={}, &callback)
       @key   = attrs[:key]
+      @nest_keys = attrs[:nest_keys]
       @default = attrs[:default]
       @short = shortify(attrs[:short])
       @long  = longify(attrs.has_key?(:long) ? attrs[:long] : key)
@@ -82,7 +86,19 @@ class ConfigParser
     
     # Assign the value to the config hash, if key is set.  Returns value.
     def assign(value, config={})
-      config[key] = value if key
+      if key
+        nest_config = nest(config)
+        nest_config[key] = value
+      end
+      
+      config
+    end
+    
+    def nest(config)
+      nest_keys.each do |key|
+        config = (config[key] ||= {})
+      end if nest_keys
+      
       config
     end
     

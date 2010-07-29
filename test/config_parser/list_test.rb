@@ -22,4 +22,20 @@ class ListTest < Test::Unit::TestCase
     
     assert_equal({'key' => ['a', 'b', 'c']}, config)
   end
+  
+  def test_assign_nests_value_into_config_if_nest_keys_are_set
+    list = List.new :key => 'c', :nest_keys => ['a', 'b']
+    config = {}
+    
+    list.assign('a', config)
+    list.assign('b', config)
+    list.assign('c', config)
+    
+    assert_equal({'a' => {'b' => {'c' => ['a', 'b', 'c']}}}, config)
+  end
+  
+  def test_assign_ignores_nest_keys_without_key
+    list = List.new :nest_keys => ['a', 'b']
+    assert_equal({}, list.assign('value'))
+  end
 end

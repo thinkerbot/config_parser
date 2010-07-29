@@ -90,4 +90,14 @@ class FlagTest < Test::Unit::TestCase
     
     assert_equal({'key' => 'value'}, config)
   end
+  
+  def test_assign_nests_value_into_config_if_nest_keys_are_set
+    flag = Flag.new :key => 'c', :nest_keys => ['a', 'b']
+    assert_equal({'a' => {'b' => {'c' => 'value'}}}, flag.assign('value'))
+  end
+  
+  def test_assign_ignores_nest_keys_without_key
+    flag = Flag.new :nest_keys => ['a', 'b']
+    assert_equal({}, flag.assign('value'))
+  end
 end
