@@ -50,11 +50,13 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     
     assert '--[no-]opt' =~ r
     assert_equal '', $1
-    assert_equal 'opt', $2
+    assert_equal 'no', $2
+    assert_equal 'opt', $3
     
     assert '--nest:[no-]opt' =~ r
     assert_equal 'nest:', $1
-    assert_equal 'opt', $2
+    assert_equal 'no', $2
+    assert_equal 'opt', $3
     
     # non-matching
     assert 'desc' !~ r

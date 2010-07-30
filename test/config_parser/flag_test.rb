@@ -9,34 +9,34 @@ class FlagTest < Test::Unit::TestCase
   #
   
   def test_default_initialize
-    flag = Flag.new
-    assert_equal nil, flag.key
-    assert_equal nil, flag.long
-    assert_equal nil, flag.short
-    assert_equal nil, flag.desc
-    assert_equal nil, flag.callback
+    opt = Flag.new
+    assert_equal nil, opt.key
+    assert_equal nil, opt.long
+    assert_equal nil, opt.short
+    assert_equal nil, opt.desc
+    assert_equal nil, opt.callback
   end
   
   def test_initialize_formats_long_flags
-    flag = Flag.new :long => 'long'
-    assert_equal '--long', flag.long
+    opt = Flag.new :long => 'long'
+    assert_equal '--long', opt.long
   end
   
   def test_initialize_formats_short_flags
-    flag = Flag.new :short => 's'
-    assert_equal '-s', flag.short
+    opt = Flag.new :short => 's'
+    assert_equal '-s', opt.short
   end
   
   def test_initialize_sets_long_according_to_key_if_unspecified
-    flag = Flag.new :key => :long
-    assert_equal :long, flag.key
-    assert_equal '--long', flag.long
+    opt = Flag.new :key => :long
+    assert_equal :long, opt.key
+    assert_equal '--long', opt.long
   end
   
   def test_initialize_sets_long_according_to_key_if_unspecified
-    flag = Flag.new :key => :long
-    assert_equal :long, flag.key
-    assert_equal '--long', flag.long
+    opt = Flag.new :key => :long
+    assert_equal :long, opt.key
+    assert_equal '--long', opt.long
   end
   
   def test_initialize_raises_error_for_invalid_long_flag
@@ -60,14 +60,34 @@ class FlagTest < Test::Unit::TestCase
   #
   
   def test_flags_returns_long_and_short_flags_if_set
-    flag = Flag.new :long => '--long', :short => '-s'
-    assert_equal ['--long', '-s'], flag.flags
+    opt = Flag.new :long => '--long', :short => '-s'
+    assert_equal ['--long', '-s'], opt.flags
     
-    flag = Flag.new :long => '--long'
-    assert_equal ['--long'], flag.flags
+    opt = Flag.new :long => '--long'
+    assert_equal ['--long'], opt.flags
     
-    flag = Flag.new
-    assert_equal [], flag.flags
+    opt = Flag.new
+    assert_equal [], opt.flags
+  end
+  
+  #
+  # parse test
+  #
+  
+  def test_parse_returns_true
+    assert_equal true, Flag.new.parse('--flag', nil)
+  end
+  
+  def test_parse_returns_callback_result_if_provided
+    opt = Flag.new { 'value' }
+    assert_equal 'value', opt.parse('--flag', nil)
+  end
+  
+  def test_parse_raises_error_if_value_is_provided
+    opt = Flag.new
+    
+    e = assert_raises(RuntimeError) { opt.parse('--flag', 'value') }
+    assert_equal "value specified for flag: --flag", e.message
   end
   
   #
@@ -79,25 +99,25 @@ class FlagTest < Test::Unit::TestCase
   end
   
   def test_assign_returns_hash_with_value_assigned_to_key_if_set
-    flag = Flag.new :key => 'key'
-    assert_equal({'key' => 'value'}, flag.assign('value'))
+    opt = Flag.new :key => 'key'
+    assert_equal({'key' => 'value'}, opt.assign('value'))
   end
   
   def test_assign_allows_specification_of_config
-    flag = Flag.new :key => 'key'
+    opt = Flag.new :key => 'key'
     config = {}
-    flag.assign('value', config)
+    opt.assign('value', config)
     
     assert_equal({'key' => 'value'}, config)
   end
   
   def test_assign_nests_value_into_config_if_nest_keys_are_set
-    flag = Flag.new :key => 'c', :nest_keys => ['a', 'b']
-    assert_equal({'a' => {'b' => {'c' => 'value'}}}, flag.assign('value'))
+    opt = Flag.new :key => 'c', :nest_keys => ['a', 'b']
+    assert_equal({'a' => {'b' => {'c' => 'value'}}}, opt.assign('value'))
   end
   
   def test_assign_ignores_nest_keys_without_key
-    flag = Flag.new :nest_keys => ['a', 'b']
-    assert_equal({}, flag.assign('value'))
+    opt = Flag.new :nest_keys => ['a', 'b']
+    assert_equal({}, opt.assign('value'))
   end
 end

@@ -26,13 +26,13 @@ class ConfigParser
     attr_reader :callback
     
     def initialize(attrs={}, &callback)
-      @key   = attrs[:key]
+      @key       = attrs[:key]
       @nest_keys = attrs[:nest_keys]
-      @default = attrs[:default]
-      @short = shortify(attrs[:short])
-      @long  = longify(attrs.has_key?(:long) ? attrs[:long] : key)
-      @desc  = attrs[:desc]
-      @callback = callback
+      @default   = attrs[:default]
+      @short     = shortify(attrs[:short])
+      @long      = longify(attrs.has_key?(:long) ? attrs[:long] : key)
+      @desc      = attrs[:desc]
+      @callback  = callback
     end
     
     # Returns an array of non-nil flags mapping to self (ie [long, short]).
@@ -69,7 +69,7 @@ class ConfigParser
     # 'xvalue'. Then '-y' determines whether or not it needs a values; if not
     # '-xvalue' gets unshifted to argv and parsing continues as if '-y
     # -xvalue' were the original arguments.
-    def parse(flag, value, argv=[], config={})
+    def parse(flag, value=nil, argv=[], config={})
       unless value.nil?
         if flag == short
           argv.unshift "-#{value}"
@@ -78,7 +78,7 @@ class ConfigParser
         end
       end
       
-      value = callback ? callback.call : (default.nil? ? false : default)
+      value = callback ? callback.call : (default.nil? ? true : !default)
       assign(value, config)
       
       value

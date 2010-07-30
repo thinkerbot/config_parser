@@ -210,11 +210,11 @@ class ConfigParserTest < Test::Unit::TestCase
   
     psr = ConfigParser.new
     psr.add(:flag, false, :type => :flag)
-    psr.add(:switch, false, :type => :switch)
+    psr.add(:switch, true, :type => :switch)
     psr.add(:list, [], :type => :list)
   
     psr.parse("--flag --switch --list one --list two --list three")
-    assert_equal({:flag => false, :switch => false, :list => ['one', 'two', 'three']}, psr.config)
+    assert_equal({:flag => true, :switch => true, :list => ['one', 'two', 'three']}, psr.config)
   
     psr = ConfigParser.new
     psr.add(:opt, 'default') {|input| input.reverse }

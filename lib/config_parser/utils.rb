@@ -20,9 +20,10 @@ class ConfigParser
     # After the match:
     #  
     #   $1:: the nesting prefix ('nest')
-    #   $2:: the long flag name ('opt')
+    #   $2:: the nolong prefix
+    #   $3:: the long flag name ('opt')
     #
-    SWITCH = /\A--(.*?)\[no-\](.+)\z/
+    SWITCH = /\A--(.*?)\[(.*?)-\](.+)\z/
     
     # Turns the input into a short flag by prefixing '-' (as needed). Raises
     # an error if the input doesn't result in a short flag.   Nils are
@@ -100,9 +101,9 @@ class ConfigParser
 
         case flag
         when SWITCH
-          attrs[:long] = "--#{$1}#{$2}"
-          attrs[:negative_long] = "--#{$1}no-#{$2}"
-
+          attrs[:long] = "--#{$1}#{$3}"
+          attrs[:prefix] = $2
+          
           if arg_name
             raise ArgumentError, "arg_name specified for switch: #{arg_name}"
           end
@@ -123,7 +124,7 @@ class ConfigParser
     
     def guess_type(attrs) # :nodoc:
       case
-      when attrs[:negative_long]
+      when attrs[:prefix]
         :switch
       when attrs[:arg_name] || attrs[:default]
         :option

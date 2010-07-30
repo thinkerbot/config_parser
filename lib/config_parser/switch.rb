@@ -6,31 +6,34 @@ class ConfigParser
   # and negative (--no-flag) flags map to self.
   class Switch < Flag
     
-    # The negative long flag, determined from long if not set otherwise.
-    attr_reader :negative_long
+    attr_reader :prefix
+    
+    # The negative long flag, determined from long.
+    attr_reader :nolong
     
     def initialize(attrs={})
       attrs[:default] = true unless attrs.has_key?(:default)
       super
       
       raise ArgumentError, "no long specified" unless long
-      @negative_long = attrs[:negative_long] || prefix_long(long, 'no-')
+      @prefix = attrs[:prefix] || 'no'
+      @nolong = prefix_long(long, "#{prefix}-")
     end
     
     # Returns an array of non-nil flags mapping to self (ie [long,
-    # negative_long, short]).
+    # nolong, short]).
     def flags
-      [long, negative_long, short].compact
+      [long, nolong, short].compact
     end
     
     # Assigns true into config for positive flags and false for negative
     # flags.  If specified, the callback is called with the boolean to
     # determine the assigned value.  Raises an error if a value is provided
     # (switches take none).
-    def parse(flag, value, argv=[], config={})
+    def parse(flag, value=nil, argv=[], config={})
       raise "value specified for switch: #{flag}" if value
       
-      value = (flag == negative_long ? !default : default)
+      value = (flag == nolong ? !default : default)
       value = callback.call(value) if callback
       
       assign(value, config)
@@ -41,7 +44,7 @@ class ConfigParser
     
     # helper returning long formatted for to_s
     def long_str # :nodoc:
-      long ? prefix_long(long, '[no-]') : ''
+      prefix_long(long, "[#{prefix}-]")
     end
   end
 end

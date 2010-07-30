@@ -17,7 +17,7 @@ class ConfigParser
     # Parse the flag and value.  If no value is provided and a value is
     # required, then a value is shifted off of argv.  Calls the callback
     # with the value, if specified, and assigns the result.
-    def parse(flag, value, argv=[], config={})
+    def parse(flag, value=nil, argv=[], config={})
       if value.nil?
         unless value = next_arg(argv)
           raise "no value provided for: #{flag}"
