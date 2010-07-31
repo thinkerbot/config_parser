@@ -79,13 +79,13 @@ class ConfigParser
       end
       
       value = callback ? callback.call : (default.nil? ? true : !default)
-      assign(value, config)
+      assign(config, value)
       
       value
     end
     
     # Assign the value to the config hash, if key is set.  Returns value.
-    def assign(value, config={})
+    def assign(config, value=default)
       if key
         nest_config = nest(config)
         nest_config[key] = value

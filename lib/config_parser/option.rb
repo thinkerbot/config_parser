@@ -25,7 +25,7 @@ class ConfigParser
       end
       
       value = callback.call(value) if callback
-      assign(value, config)
+      assign(config, value)
       
       value
     end

@@ -94,30 +94,32 @@ class FlagTest < Test::Unit::TestCase
   # assign test
   #
   
-  def test_assign_returns_empty_hash_if_key_is_not_set
-    assert_equal({}, Flag.new.assign('value'))
+  def test_assign_sets_default_to_config_if_key_is_set
+    opt = Flag.new :key => 'key', :default => 'value'
+    assert_equal({'key' => 'value'}, opt.assign({}))
   end
   
-  def test_assign_returns_hash_with_value_assigned_to_key_if_set
-    opt = Flag.new :key => 'key'
-    assert_equal({'key' => 'value'}, opt.assign('value'))
+  def test_assign_sets_value_if_specified
+    opt = Flag.new :key => 'key', :default => 'value'
+    assert_equal({'key' => 'VALUE'}, opt.assign({}, 'VALUE'))
   end
   
-  def test_assign_allows_specification_of_config
+  def test_assign_will_assign_nil
     opt = Flag.new :key => 'key'
-    config = {}
-    opt.assign('value', config)
-    
-    assert_equal({'key' => 'value'}, config)
+    assert_equal({'key' => nil}, opt.assign({}))
+  end
+  
+  def test_assign_does_nothings_if_key_is_not_set
+    assert_equal({}, Flag.new.assign({}))
   end
   
   def test_assign_nests_value_into_config_if_nest_keys_are_set
     opt = Flag.new :key => 'c', :nest_keys => ['a', 'b']
-    assert_equal({'a' => {'b' => {'c' => 'value'}}}, opt.assign('value'))
+    assert_equal({'a' => {'b' => {'c' => nil}}}, opt.assign({}))
   end
   
   def test_assign_ignores_nest_keys_without_key
     opt = Flag.new :nest_keys => ['a', 'b']
-    assert_equal({}, opt.assign('value'))
+    assert_equal({}, opt.assign({}))
   end
 end

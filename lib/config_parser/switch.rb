@@ -36,7 +36,7 @@ class ConfigParser
       value = (flag == nolong ? !default : default)
       value = callback.call(value) if callback
       
-      assign(value, config)
+      assign(config, value)
       value
     end
 

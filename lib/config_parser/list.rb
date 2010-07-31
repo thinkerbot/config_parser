@@ -22,7 +22,7 @@ class ConfigParser
     # List assigns configs by pushing the value onto an array, rather than
     # directly setting it onto config.  As usual, no value is assigned if key
     # is not set.  Returns value (the input, not the array).
-    def assign(value, config={})
+    def assign(config, value=default)
       if key
         nest_config = nest(config)
         array = (nest_config[key] ||= [])
