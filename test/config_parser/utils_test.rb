@@ -128,4 +128,37 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert_equal '--no-opt', prefix_long('--opt', 'no-')
     assert_equal '--nested:no-opt', prefix_long('--nested:opt', 'no-')
   end
+  
+  #
+  # option? test
+  #
+  
+  def test_option_check_returns_true_if_arg_is_an_option
+    assert_equal false, option?(nil)
+    assert_equal false, option?('-')
+    assert_equal false, option?(:'--opt')
+    
+    assert_equal true, option?('--') # an odd but valid short
+    assert_equal true, option?('-s')
+    assert_equal true, option?('--long')
+    assert_equal true, option?('--no-long')
+    assert_equal true, option?('--nest:long')
+  end
+  
+  #
+  # next_arg test
+  #
+  
+  def test_next_arg_shifts_an_arg_from_argv_if_it_is_not_an_option
+    args = %w{a -b c}
+    assert_equal 'a', next_arg(args)
+    assert_equal %w{-b c}, args
+    
+    assert_equal nil, next_arg(args)
+    assert_equal %w{-b c}, args
+  end
+  
+  def test_next_arg_returns_default_if_the_next_arg_is_an_option
+    assert_equal 'a', next_arg(%w{-b c}, 'a')
+  end
 end

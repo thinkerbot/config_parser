@@ -549,6 +549,23 @@ class ConfigParserTest < Test::Unit::TestCase
   # parse flag test
   #
   
+  def test_parse_flag_sets_negative_default_in_config
+    c.add(:key, false, :type => :flag)
+
+    c.parse %w{a b c}
+    assert_equal({:key => false}, c.config)
+    
+    c.parse %w{a --key c}
+    assert_equal({:key => true}, c.config)
+  end
+  
+  def test_parse_nests_as_specified
+    c.add(:c, false, :long => 'key', :nest_keys => [:a, :b], :type => :flag)
+    
+    c.parse %w{a --key c}
+    assert_equal({:a => {:b => {:c => true}}}, c.config)
+  end
+  
   def test_parse_flag_calls_callback
     was_in_block = nil
     c.on('--opt') { was_in_block = true }
@@ -576,6 +593,19 @@ class ConfigParserTest < Test::Unit::TestCase
   #
   # parse switch test
   #
+  
+  def test_parse_switch_sets_default_in_config
+    c.add(:key, true, :type => :switch)
+
+    c.parse %w{a b c}
+    assert_equal({:key => true}, c.config)
+    
+    c.parse %w{a --key c}
+    assert_equal({:key => true}, c.config)
+    
+    c.parse %w{a --no-key c}
+    assert_equal({:key => false}, c.config)
+  end
   
   def test_parse_switch_passes_true_to_callback
     value_in_block = nil

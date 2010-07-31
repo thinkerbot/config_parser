@@ -16,15 +16,20 @@ class ConfigParser
     # Matches a short flag
     SHORT_FLAG = /\A-.\z/
     
-    # Matches a switch declaration (ex: '--[no-]opt', '--nest:[no-]opt').
-    # After the match:
-    #  
+    # Matches a switch option (ex: '--[no-]opt', '--nest:[no-]opt'). After the
+    # match:
+    #   
     #   $1:: the nesting prefix ('nest')
-    #   $2:: the nolong prefix
+    #   $2:: the nolong prefix ('no')
     #   $3:: the long flag name ('opt')
     #
     SWITCH = /\A--(.*?)\[(.*?)-\](.+)\z/
     
+    # Matches a nest option (ex: '--nest:opt').  After the match:
+    #
+    #   $1:: the nesting prefix ('nest')
+    #   $2:: the long option ('long')
+    #
     NEST = /\A--(.*):(.+)\z/
     
     # Turns the input into a short flag by prefixing '-' (as needed). Raises
@@ -38,7 +43,7 @@ class ConfigParser
       return nil if str.nil?
   
       str = str.to_s
-      str = "-#{str}" unless str[0] == ?-
+      str = "-#{str}" unless option?(str)
       
       unless str =~ SHORT_FLAG
         raise ArgumentError, "invalid short flag: #{str}"
@@ -58,18 +63,13 @@ class ConfigParser
       return nil if str.nil?
   
       str = str.to_s
-      str = "--#{str}" unless str[0] == ?-
+      str = "--#{str}" unless option?(str)
       
       unless str =~ LONG_FLAG
         raise ArgumentError, "invalid long flag: #{str}"
       end
       
       str
-    end
-    
-    def next_arg(argv, default)
-      arg = argv[0]
-      (arg.kind_of?(String) && arg[0] == ?-) ? default : argv.shift
     end
     
     # Adds a prefix onto the last nested segment of a long option.
@@ -84,6 +84,17 @@ class ConfigParser
       "--#{switch.join(':')}"
     end
     
+    # Returns true if the object is a string and matches OPTION.
+    def option?(obj)
+      obj.kind_of?(String) && obj =~ /\A-./ ? true : false
+    end
+    
+    # Shifts and returns the first argument off of argv if it is an argument
+    # (rather than an option) or returns the default value.
+    def next_arg(argv, default=nil)
+      option?(argv.at(0)) ? default : argv.shift
+    end
+    
     # A wrapping algorithm slightly modified from:
     # http://blog.macromates.com/2006/wrapping-text-with-regular-expressions/
     def wrap(line, cols=80, tabsize=2)
@@ -91,11 +102,30 @@ class ConfigParser
       line.gsub(/(.{1,#{cols}})( +|$\r?\n?)|(.{1,#{cols}})/, "\\1\\3\n").split(/\s*?\n/)
     end
     
+    # Parses the argv into an attributes hash for initializing an option.
+    # Heuristics are used to infer what an argument implies.
+    #  
+    #   Argument            Implies
+    #   -s                  :short => '-s'
+    #   --long              :long => '--long'
+    #   --long ARG          :long => '--long', :arg_name => 'ARG'
+    #   --[no-]long         :long => '--long', :prefix => 'no', :type => :switch
+    #   --nest:long         :long => '--nest:long', :nest_keys => ['nest']
+    #   'some string'       :desc => 'some string'
+    #
+    # Usually you overlay these patterns, for example:
+    #
+    #   -s ARG              :short => '-s', :arg_name => 'ARG'
+    #   --nest:[no-]long    :long => '--nest:long', :nest_keys => ['nest'], :prefix => 'no', :type => :switch
+    #
+    # The goal of this method is to get things right most of the time, not to
+    # be clean, simple, or robust.  Some errors in declarations (like an
+    # arg_name with a switch) can be detected... others not so much.
     def parse_attrs(argv)
       attrs={}
       
       argv.each do |arg|
-        if arg[0] != ?-
+        unless option?(arg)
           attrs[:desc] = arg
           next
         end
@@ -133,7 +163,17 @@ class ConfigParser
       attrs
     end
     
-    def guess_type(attrs) # :nodoc:
+    # Guesses an option type based on the attrs.
+    #
+    #   if...            then...
+    #   prefix      =>   :switch
+    #   arg_name    =>   :option
+    #   default     =>   :option
+    #   [default]   =>   :list
+    #   all else    =>   :flag
+    #
+    # A guess is just a guess; for certainty specify the type manually.
+    def guess_type(attrs)
       case
       when attrs[:prefix]
         :switch
