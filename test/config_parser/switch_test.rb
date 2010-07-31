@@ -31,4 +31,15 @@ class SwitchTest < Test::Unit::TestCase
     e = assert_raises(RuntimeError) { opt.parse('--switch', 'value') }
     assert_equal "value specified for switch: --switch", e.message
   end
+  
+  #
+  # to_s test
+  #
+  
+  def test_to_s_adds_prefix_to_long
+    opt = Switch.new(:long => 'long', :short => 's', :prefix => 'off', :desc => "description of key")
+    expected = %q{
+    -s, --[off-]long                 description of key                         }
+    assert_equal expected, "\n#{opt.to_s}"
+  end
 end

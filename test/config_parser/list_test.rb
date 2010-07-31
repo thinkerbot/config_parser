@@ -22,7 +22,7 @@ class ListTest < Test::Unit::TestCase
     assert_equal [1,2,3], opt.parse('--list', [1,2,3])
   end
   
-  def test_parse_unshifts_value_from_argv_if_nil
+  def test_parse_shifts_value_from_argv_if_nil
     argv = ['a,b,c', 'x,y,z']
     assert_equal ['a', 'b', 'c'], opt.parse('--list', nil, argv)
     assert_equal ['x,y,z'], argv

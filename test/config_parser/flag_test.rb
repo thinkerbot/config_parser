@@ -104,9 +104,14 @@ class FlagTest < Test::Unit::TestCase
     assert_equal({'key' => 'VALUE'}, opt.assign({}, 'VALUE'))
   end
   
-  def test_assign_will_assign_nil
+  def test_assign_will_assign_nil_default
     opt = Flag.new :key => 'key'
     assert_equal({'key' => nil}, opt.assign({}))
+  end
+  
+  def test_assign_will_assign_nil_value
+    opt = Flag.new :key => 'key', :default => 'value'
+    assert_equal({'key' => nil}, opt.assign({}, nil))
   end
   
   def test_assign_does_nothings_if_key_is_not_set
@@ -115,11 +120,48 @@ class FlagTest < Test::Unit::TestCase
   
   def test_assign_nests_value_into_config_if_nest_keys_are_set
     opt = Flag.new :key => 'c', :nest_keys => ['a', 'b']
-    assert_equal({'a' => {'b' => {'c' => nil}}}, opt.assign({}))
+    assert_equal({'a' => {'b' => {'c' => 'value'}}}, opt.assign({}, 'value'))
   end
   
   def test_assign_ignores_nest_keys_without_key
     opt = Flag.new :nest_keys => ['a', 'b']
     assert_equal({}, opt.assign({}))
+  end
+  
+  #
+  # to_s test
+  #
+  
+  def test_to_s_formats_flag_for_the_command_line
+    opt = Flag.new(:long => 'long', :short => 's', :desc => "description of key")
+    expected = %q{
+    -s, --long                       description of key                         }
+    assert_equal expected, "\n#{opt.to_s}"
+  end
+  
+  def test_to_s_wraps_long_descriptions
+    opt = Flag.new(:long => 'long', :desc => "a really long description of key " * 4)
+    
+    expected = %q{
+        --long                       a really long description of key a really  
+                                     long description of key a really long      
+                                     description of key a really long           
+                                     description of key                         }
+                                     
+    assert_equal expected, "\n#{opt.to_s}"
+  end
+  
+  def test_to_s_indents_long_headers
+    opt = Flag.new(
+      :short => 's',
+      :long => '--a:nested:and-really-freaky-long-option', 
+      :desc => "a really long description of key " * 2)
+      
+    expected = %q{
+    -s, --a:nested:and-really-freaky-long-option                                
+                                     a really long description of key a really  
+                                     long description of key                    }
+                                     
+    assert_equal expected, "\n#{opt.to_s}"
   end
 end
