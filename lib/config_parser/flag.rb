@@ -78,10 +78,12 @@ class ConfigParser
         end
       end
       
-      value = callback ? callback.call : (default.nil? ? true : !default)
-      assign(config, value)
-      
-      value
+      value = (default.nil? ? true : !default)
+      assign(config, process(value))
+    end
+    
+    def process(value)
+      callback ? callback.call(value) : value
     end
     
     # Assign the value to the config hash, if key is set.  Returns value.

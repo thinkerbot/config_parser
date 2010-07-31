@@ -474,10 +474,7 @@ class ConfigParserTest < Test::Unit::TestCase
   
   def test_parse_flag_calls_block_for_switch
     was_in_block = nil
-    c.on('--opt') do |*args| 
-      assert args.empty?
-      was_in_block = true
-    end
+    c.on('--opt') { was_in_block = true }
 
     c.parse(["a", "--opt", "b"])
     assert was_in_block

@@ -34,10 +34,7 @@ class ConfigParser
       raise "value specified for switch: #{flag}" if value
       
       value = (flag == nolong ? !default : default)
-      value = callback.call(value) if callback
-      
-      assign(config, value)
-      value
+      assign(config, process(value))
     end
 
     private

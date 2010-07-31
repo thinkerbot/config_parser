@@ -21,28 +21,19 @@ class ConfigParser
       @default = split(@default)
     end
     
-    def parse(flag, value=nil, argv=[], config={})
-      if value.nil?
-        unless value = next_arg(argv, default)
-          raise "no value provided for: #{flag}"
-        end
-      end
-      
-      value = split(value)
-      value = callback.call(value) if callback
-      assign(config, value)
-      
-      value
+    def process(value)
+      values = split(value)
+      callback ? callback.call(values) : values
     end
     
     # List assigns configs by pushing the value onto an array, rather than
     # directly setting it onto config.  As usual, no value is assigned if key
     # is not set.  Returns value (the input, not the array).
-    def assign(config, value=default)
+    def assign(config, values=default)
       if key
         nest_config = nest(config)
         array = (nest_config[key] ||= [])
-        array.concat value
+        array.concat(values)
       
         if limit && array.length > limit
           raise "too many assignments: #{key.inspect}"

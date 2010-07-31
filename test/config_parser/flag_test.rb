@@ -4,6 +4,12 @@ require 'config_parser/flag'
 class FlagTest < Test::Unit::TestCase
   Flag = ConfigParser::Flag
   
+  attr_reader :opt
+  
+  def setup
+    @opt = Flag.new
+  end
+  
   #
   # initialize tests
   #
@@ -25,12 +31,6 @@ class FlagTest < Test::Unit::TestCase
   def test_initialize_formats_short_flags
     opt = Flag.new :short => 's'
     assert_equal '-s', opt.short
-  end
-  
-  def test_initialize_sets_long_according_to_key_if_unspecified
-    opt = Flag.new :key => :long
-    assert_equal :long, opt.key
-    assert_equal '--long', opt.long
   end
   
   def test_initialize_sets_long_according_to_key_if_unspecified
@@ -74,20 +74,22 @@ class FlagTest < Test::Unit::TestCase
   # parse test
   #
   
-  def test_parse_returns_true
-    assert_equal true, Flag.new.parse('--flag', nil)
-  end
-  
-  def test_parse_returns_callback_result_if_provided
-    opt = Flag.new { 'value' }
-    assert_equal 'value', opt.parse('--flag', nil)
-  end
-  
   def test_parse_raises_error_if_value_is_provided
-    opt = Flag.new
-    
     e = assert_raises(RuntimeError) { opt.parse('--flag', 'value') }
     assert_equal "value specified for flag: --flag", e.message
+  end
+  
+  #
+  # process test
+  #
+  
+  def test_process_returns_value
+    assert_equal 'value', opt.process('value')
+  end
+  
+  def test_process_calls_callback_with_value_and_returns_result
+    opt = Flag.new {|input| input.upcase }
+    assert_equal 'VALUE', opt.process('value')
   end
   
   #
@@ -115,7 +117,7 @@ class FlagTest < Test::Unit::TestCase
   end
   
   def test_assign_does_nothings_if_key_is_not_set
-    assert_equal({}, Flag.new.assign({}))
+    assert_equal({}, opt.assign({}))
   end
   
   def test_assign_nests_value_into_config_if_nest_keys_are_set

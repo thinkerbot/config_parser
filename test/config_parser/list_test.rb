@@ -11,21 +11,15 @@ class ListTest < Test::Unit::TestCase
   end
   
   #
-  # parse test
+  # process test
   #
   
-  def test_parse_splits_string_values_along_delimiter
-    assert_equal ['a', 'b', 'c'], opt.parse('--list', 'a,b,c')
+  def test_process_splits_string_values_along_delimiter
+    assert_equal ['a', 'b', 'c'], opt.process('a,b,c')
   end
   
-  def test_parse_returns_array_values_directly
-    assert_equal [1,2,3], opt.parse('--list', [1,2,3])
-  end
-  
-  def test_parse_shifts_value_from_argv_if_nil
-    argv = ['a,b,c', 'x,y,z']
-    assert_equal ['a', 'b', 'c'], opt.parse('--list', nil, argv)
-    assert_equal ['x,y,z'], argv
+  def test_process_returns_array_values_directly
+    assert_equal [1,2,3], opt.process([1,2,3])
   end
   
   #
@@ -38,7 +32,7 @@ class ListTest < Test::Unit::TestCase
   end
   
   def test_assign_does_nothing_if_key_is_not_set
-    assert_equal({}, List.new.assign({}))
+    assert_equal({}, opt.assign({}))
   end
   
   def test_assign_appends_values_to_array
