@@ -195,6 +195,12 @@ class ConfigParser
     option
   end
   
+  def unregister(option)
+    @registry.delete(option)
+    @options.delete_if {|key, value| option == value }
+    option
+  end
+  
   # Constructs an Option using args and registers it with self.  Args may
   # contain (in any order) a short switch, a long switch, and a description
   # string.  Either the short or long switch may signal that the option
@@ -294,6 +300,12 @@ class ConfigParser
     args << attrs
     
     on(*args, &block)
+  end
+  
+  def rm(key)
+    opts = options.values.select {|option| option.key == key }
+    opts.each {|option| unregister(option) }
+    opts
   end
   
   # Parses options from argv in a non-destructive manner and returns an

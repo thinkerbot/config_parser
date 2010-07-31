@@ -110,6 +110,23 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   #
+  # unregister
+  #
+  
+  def test_unregister_removes_opt_from_registry_and_options
+    opt = Option.new(:long => 'key', :short => 'k')
+    c.register(opt)
+    
+    assert_equal [opt], c.registry
+    assert_equal({'--key' => opt, '-k' => opt}, c.options)
+    
+    c.unregister(opt)
+    
+    assert_equal [], c.registry
+    assert_equal({}, c.options)
+  end
+  
+  #
   # on test
   #
   
@@ -268,6 +285,24 @@ class ConfigParserTest < Test::Unit::TestCase
   def test_add_with_array_default_defaults_to_list_type
     opt = c.add(:key, [])
     assert_equal ConfigParser::List, opt.class
+  end
+  
+  #
+  # rm test
+  #
+  
+  def test_rm_unregisters_option_with_specified_key
+    x = c.add(:x)
+    y = c.add(:y)
+    z = c.add(:z)
+    
+    assert_equal [x, y, z], c.registry
+    assert_equal [x, y, z], c.options.values.sort_by {|opt| opt.key.to_s }
+    
+    c.rm(:y)
+    
+    assert_equal [x, z], c.registry
+    assert_equal [x, z], c.options.values.sort_by {|opt| opt.key.to_s }
   end
   
   #
