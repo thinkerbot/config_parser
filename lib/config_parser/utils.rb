@@ -25,6 +25,8 @@ class ConfigParser
     #
     SWITCH = /\A--(.*?)\[(.*?)-\](.+)\z/
     
+    NEST = /\A--(.*):(.+)\z/
+    
     # Turns the input into a short flag by prefixing '-' (as needed). Raises
     # an error if the input doesn't result in a short flag.   Nils are
     # returned directly.
@@ -99,6 +101,10 @@ class ConfigParser
         end
 
         flag, arg_name = arg.split(/\s+/, 2)
+        
+        if flag =~ NEST
+          attrs[:nest_keys] = $1.split(':')
+        end
 
         if arg_name
           attrs[:arg_name] = arg_name

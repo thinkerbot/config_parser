@@ -244,6 +244,12 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal ConfigParser::List, opt.class
   end
   
+  def test_add_parses_nested_option
+    opt = c.add(:key, 'value', '--nest:long', '-s')
+    assert_equal ['nest'], opt.nest_keys
+    assert_equal '--nest:long', opt.long
+  end
+  
   def test_add_defaults_to_option_type
     opt = c.add(:key, 'value', '--long')
     assert_equal ConfigParser::Option, opt.class
