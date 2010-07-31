@@ -65,6 +65,11 @@ class ConfigParser
       str
     end
     
+    def next_arg(argv, default)
+      arg = argv[0]
+      (arg.kind_of?(String) && arg[0] == ?-) ? default : argv.shift
+    end
+    
     # Adds a prefix onto the last nested segment of a long option.
     #
     #   prefix_long('--opt', 'no-')         # => '--no-opt'

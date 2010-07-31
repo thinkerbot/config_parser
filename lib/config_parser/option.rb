@@ -19,7 +19,7 @@ class ConfigParser
     # with the value, if specified, and assigns the result.
     def parse(flag, value=nil, argv=[], config={})
       if value.nil?
-        unless value = next_arg(argv)
+        unless value = next_arg(argv, default)
           raise "no value provided for: #{flag}"
         end
       end
@@ -31,11 +31,6 @@ class ConfigParser
     end
     
     private
-    
-    def next_arg(argv) # :nodoc:
-      arg = argv[0]
-      (arg.kind_of?(String) && arg[0] == ?-) ? default : argv.shift
-    end
     
     def header_str # :nodoc:
       "    #{short_str}#{long_str} #{arg_name}"
