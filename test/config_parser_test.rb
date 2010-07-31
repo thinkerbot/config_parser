@@ -460,6 +460,22 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal %w{a b}, args
   end
   
+  def test_parse_assigns_default_config_values
+    c.add(:key, 'default')
+    c.parse %w{a b}
+    
+    assert_equal({:key => 'default'}, c.config)
+  end
+  
+  def test_parse_does_not_assign_default_config_values_unless_specified
+    c.add(:key, 'default')
+    
+    c.assign_defaults = false
+    c.parse %w{a b}
+    
+    assert_equal({}, c.config)
+  end
+  
   def test_parse_raises_error_for_unknown_option
     err = assert_raises(RuntimeError) { c.parse %w{--unknown option} }
     assert_equal "unknown option: --unknown", err.message

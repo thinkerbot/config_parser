@@ -129,11 +129,15 @@ class ConfigParser
   # Set to true to preserve the break argument
   attr_accessor :preserve_option_break
   
+  # Set to true to assign config defaults on parse
+  attr_accessor :assign_defaults
+  
   # Initializes a new ConfigParser and passes it to the block, if given.
   def initialize(config={}, opts={})
     opts = {
       :option_break => OPTION_BREAK,
-      :preserve_option_break => false
+      :preserve_option_break => false,
+      :assign_defaults => true
     }.merge(opts)
     
     @registry = []
@@ -141,6 +145,7 @@ class ConfigParser
     @config = config
     @option_break = opts[:option_break]
     @preserve_option_break = opts[:preserve_option_break]
+    @assign_defaults = opts[:assign_defaults]
     
     yield(self) if block_given?
   end
@@ -310,6 +315,13 @@ class ConfigParser
   # Same as parse, but removes parsed args from argv.
   def parse!(argv=ARGV)
     argv = Shellwords.shellwords(argv) if argv.kind_of?(String)
+    
+    if assign_defaults
+      registry.each do |option|
+        next unless option.respond_to?(:assign)
+        option.assign(config)
+      end
+    end
     
     args = []
     remainder = scan(argv) {|arg| args << arg }
