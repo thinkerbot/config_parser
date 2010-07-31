@@ -31,7 +31,7 @@ class ConfigParser
     # determine the assigned value.  Raises an error if a value is provided
     # (switches take none).
     def parse(flag, value=nil, argv=[], config={})
-      raise "value specified for switch: #{flag}" if value
+      raise "value specified for #{flag}: #{value.inspect}" if value
       
       value = (flag == nolong ? !default : default)
       assign(config, process(value))

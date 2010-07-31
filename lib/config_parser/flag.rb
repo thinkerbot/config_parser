@@ -74,7 +74,7 @@ class ConfigParser
         if flag == short
           argv.unshift "-#{value}"
         else
-          raise "value specified for flag: #{flag}"
+          raise "value specified for #{flag}: #{value.inspect}"
         end
       end
       

@@ -76,7 +76,7 @@ class FlagTest < Test::Unit::TestCase
   
   def test_parse_raises_error_if_value_is_provided
     e = assert_raises(RuntimeError) { opt.parse('--flag', 'value') }
-    assert_equal "value specified for flag: --flag", e.message
+    assert_equal 'value specified for --flag: "value"', e.message
   end
   
   #

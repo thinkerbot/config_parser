@@ -138,7 +138,7 @@ class ConfigParser
       when attrs[:prefix]
         :switch
       when attrs[:arg_name] || attrs[:default]
-        :option
+        Array === attrs[:default] ? :list : :option
       else
         :flag
       end

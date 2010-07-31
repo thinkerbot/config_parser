@@ -16,7 +16,7 @@ class SwitchTest < Test::Unit::TestCase
   
   def test_parse_raises_error_if_value_is_provided
     e = assert_raises(RuntimeError) { opt.parse('--switch', 'value') }
-    assert_equal "value specified for switch: --switch", e.message
+    assert_equal 'value specified for --switch: "value"', e.message
   end
   
   #

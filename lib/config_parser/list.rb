@@ -17,13 +17,12 @@ class ConfigParser
       super
       
       @delimiter = attrs.has_key?(:delimiter) ? attrs[:delimiter] : DELIMITER
-      @limit   = attrs[:n]
+      @limit   = attrs[:limit]
       @default = split(@default)
     end
     
     def process(value)
-      values = split(value)
-      callback ? callback.call(values) : values
+      super split(value)
     end
     
     # List assigns configs by pushing the value onto an array, rather than
@@ -36,7 +35,7 @@ class ConfigParser
         array.concat(values)
       
         if limit && array.length > limit
-          raise "too many assignments: #{key.inspect}"
+          raise "too many assignments for #{key.inspect}"
         end
       end
       
