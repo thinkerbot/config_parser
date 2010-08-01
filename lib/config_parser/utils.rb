@@ -167,20 +167,37 @@ class ConfigParser
     #
     #   if...            then...
     #   prefix      =>   :switch
-    #   arg_name    =>   :option
-    #   default     =>   :option
-    #   [default]   =>   :list
+    #   arg_name    =>   (guess_type_by_value)
+    #   default     =>   (guess_type_by_value)
     #   all else    =>   :flag
     #
     # A guess is just a guess; for certainty specify the type manually.
     def guess_type(attrs)
       case
-      when attrs[:prefix]
+      when attrs.has_key?(:prefix)
         :switch
-      when attrs[:arg_name] || attrs[:default]
-        Array === attrs[:default] ? :list : :option
+      when attrs.has_key?(:arg_name) || attrs.has_key?(:default)
+        guess_type_by_value(attrs[:default])
       else
         :flag
+      end
+    end
+    
+    # Guesses an option type based on a value.
+    #
+    #   if...            then...
+    #   true        =>   :switch
+    #   false       =>   :flag
+    #   Array       =>   :list
+    #   all else    =>   :option
+    #
+    # A guess is just a guess; for certainty specify the type manually.
+    def guess_type_by_value(value)
+      case value
+      when true  then :switch
+      when false then :flag
+      when Array then :list
+      else :option
       end
     end
   end

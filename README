@@ -60,7 +60,7 @@ are set as configs.
 
   parser = ConfigParser.new
   parser.add(:x, nil, '-o', '--one', 'by args') {|value| value.upcase }
-  parser.add(:y, nil, :long => 'two', :desc => 'by hash')
+  parser.add(:y, false, :long => 'two', :desc => 'by hash')
   
   parser.parse('a b --one value --two c')
   # => ['a', 'b', 'c']

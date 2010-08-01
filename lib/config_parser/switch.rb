@@ -6,9 +6,10 @@ class ConfigParser
   # and negative (--no-flag) flags map to self.
   class Switch < Flag
     
+    # The negative mapping prefix, defaults to 'no'
     attr_reader :prefix
     
-    # The negative long flag, determined from long.
+    # The negative long flag, determined from long and prefix.
     attr_reader :nolong
     
     def initialize(attrs={})
@@ -20,16 +21,14 @@ class ConfigParser
       @nolong = prefix_long(long, "#{prefix}-")
     end
     
-    # Returns an array of non-nil flags mapping to self (ie [long,
-    # nolong, short]).
+    # Returns an array of flags mapping to self (ie [long, nolong, short]).
     def flags
       [long, nolong, short].compact
     end
     
-    # Assigns true into config for positive flags and false for negative
-    # flags.  If specified, the callback is called with the boolean to
-    # determine the assigned value.  Raises an error if a value is provided
-    # (switches take none).
+    # Assigns default into config for positive flags and !default for negative
+    # flags. The boolean value is then processed and assigned into config.
+    # Raises an error if a value is provided (switches take none).
     def parse(flag, value=nil, argv=[], config={})
       raise "value specified for #{flag}: #{value.inspect}" if value
       
@@ -39,7 +38,6 @@ class ConfigParser
 
     private
     
-    # helper returning long formatted for to_s
     def long_str # :nodoc:
       prefix_long(long, "[#{prefix}-]")
     end

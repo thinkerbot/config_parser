@@ -384,8 +384,8 @@ class ConfigParser
     argv
   end
   
-  # Converts the options and separators in self into a help string suitable for
-  # display on the command line.
+  # Converts the options and separators in self into a help string suitable
+  # for display on the command line.
   def to_s
     @registry.collect do |option|
       option.to_s.rstrip

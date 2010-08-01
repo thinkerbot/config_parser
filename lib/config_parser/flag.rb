@@ -1,13 +1,17 @@
 require 'config_parser/utils'
 
 class ConfigParser
+  
+  # Represents a boolean flag-style option. Flag handles the parsing of
+  # specific flags, and provides hooks for processing the various types of
+  # options (Switch, Option, List).
   class Flag
     include Utils
     
     # The config key
     attr_reader :key
     
-    # The nesting keys
+    # The config nesting keys
     attr_reader :nest_keys
     
     # The default value
@@ -35,17 +39,21 @@ class ConfigParser
       @callback  = callback
     end
     
-    # Returns an array of non-nil flags mapping to self (ie [long, short]).
+    # Returns an array of flags mapping to self (ie [long, short]).
     def flags
       [long, short].compact
     end
     
-    # Assigns true into config and raises an error if a value is provided
-    # (flags take none).  The callback will be called if specified to provide
-    # the assigned value.
+    # Parse handles the parsing of flags, which happens in three steps:
     #
-    # Note this is the entry point for handling different types of
-    # configuration flags.
+    # * determine the value (occurs in parse)
+    # * process the value
+    # * assign the result into config
+    #
+    # Flag uses !default as the value (such that the flag indicates true if
+    # the default is false) then passes the value to process, and then assign.
+    # Raises and error if provided a value directly (flags always determine
+    # their value based on the default).
     #
     #--
     # Implementation Note
@@ -60,7 +68,7 @@ class ConfigParser
     #   -xvalue -y
     #   -y -xvalue
     #   -yxvalue
-    #      
+    #         
     # Whereas this is not:
     #
     #   -xyvalue                   # x receives 'yvalue' not 'value'
@@ -82,11 +90,13 @@ class ConfigParser
       assign(config, process(value))
     end
     
+    # Process the value by calling the callback, if specified, with the value
+    # and returns the result.  Returns value if no callback is specified.
     def process(value)
       callback ? callback.call(value) : value
     end
     
-    # Assign the value to the config hash, if key is set.  Returns value.
+    # Assign the value to the config hash, if key is set.  Returns config.
     def assign(config, value=default)
       if key
         nest_config = nest(config)
@@ -96,6 +106,7 @@ class ConfigParser
       config
     end
     
+    # Returns the nested config hash for config, as specified by nest_keys.
     def nest(config)
       nest_keys.each do |key|
         config = (config[key] ||= {})
@@ -125,7 +136,6 @@ class ConfigParser
       "    #{short_str}#{long_str}"
     end
     
-    # helper returning short formatted for to_s
     def short_str # :nodoc:
       case
       when short && long then "#{short}, "
@@ -134,7 +144,6 @@ class ConfigParser
       end
     end
     
-    # helper returning long formatted for to_s
     def long_str # :nodoc:
       long
     end

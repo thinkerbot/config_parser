@@ -735,9 +735,9 @@ specials:
   end
   
   def test_to_s_for_options_without_long
-    c.add('flag', true, :long => nil, :short => :f, :type => :flag, :desc => 'desc')
-    c.add('opt', true, :long => nil, :short => :o, :arg_name => 'OPT', :desc => 'desc')
-    c.add('alt', true, :desc => 'desc')
+    c.add('flag', false, :long => nil, :short => :f, :desc => 'desc')
+    c.add('opt', nil, :long => nil, :short => :o, :arg_name => 'OPT', :desc => 'desc')
+    c.add('alt', nil, :desc => 'desc')
     expected = %Q{
     -f                               desc
     -o OPT                           desc

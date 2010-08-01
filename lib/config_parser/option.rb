@@ -2,7 +2,7 @@ require 'config_parser/switch'
 
 class ConfigParser
   
-  # Represents an option registered with ConfigParser.
+  # An Option represents a Flag that takes a value.
   class Option < Flag
     DEFAULT_ARGNAME = 'VALUE'
     
@@ -15,8 +15,8 @@ class ConfigParser
     end
     
     # Parse the flag and value.  If no value is provided and a value is
-    # required, then a value is shifted off of argv.  Calls the callback
-    # with the value, if specified, and assigns the result.
+    # required, then a value is shifted off of argv.  The value is then
+    # processed and assigned into config.
     def parse(flag, value=nil, argv=[], config={})
       if value.nil?
         unless value = next_arg(argv, default)
