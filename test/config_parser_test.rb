@@ -682,43 +682,6 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   #
-  # scan test
-  #
-  
-  def test_scan_yields_each_non_opt_arg_to_block
-    was_in_block = false
-    c.on('--opt') { was_in_block = true }
-    
-    args = []
-    c.scan(%w{a --opt b --opt c}) {|arg| args << arg}
-    
-    assert_equal %w{a b c}, args
-    assert_equal true, was_in_block
-  end
-  
-  def test_scan_returns_remaining_args
-    was_in_block = false
-    c.on('--opt') { was_in_block = true }
-    
-    args = []
-    remainder = c.scan(%w{a --opt b -- c}) {|arg| args << arg}
-    
-    assert_equal %w{a b}, args
-    assert_equal %w{c}, remainder
-    assert_equal true, was_in_block
-  end
-  
-  def test_scan_does_not_yield_option_break_to_block_on_preserve_option_break
-    c.preserve_option_break = true
-    
-    args = []
-    remainder = c.scan(%w{a -- b}) {|arg| args << arg }
-    
-    assert_equal %w{a}, args
-    assert_equal %w{-- b}, remainder
-  end
-  
-  #
   # to_s test
   #
   

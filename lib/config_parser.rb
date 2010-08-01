@@ -159,54 +159,15 @@ class ConfigParser
     option
   end
   
-  # Defines and registers a config-style option with self.  Define does not
-  # take a block; the default value will be added to config, and any parsed
-  # value will override the default.  Normally the key will be turned into
-  # the long switch; specify an alternate long, a short, description, etc
-  # using attributes.
+  # An alternate syntax for on, where the key and default attributes are set
+  # by the first two args.  Like on, add can define option attributes using a
+  # series of args or with a trailing hash.
   #
-  #   psr = ConfigParser.new
-  #   psr.define(:one, 'default')
-  #   psr.define(:two, 'default', :long => '--long', :short => '-s')
+  # These are equivalent:
   #
-  #   psr.parse("--one one --long two")
-  #   psr.config             # => {:one => 'one', :two => 'two'}
+  #   add(:opt, 'value', '-s', '--long', :desc => 'description')
+  #   on('-s', '--long', :desc => 'description', :key => :opt, :default => 'value')
   #
-  # Define support several types of configurations that define a special 
-  # block to handle the values parsed from the command line.  See the 
-  # 'setup_<type>' methods in Utils.  Any type with a corresponding setup
-  # method is valid:
-  #   
-  #   psr = ConfigParser.new
-  #   psr.define(:flag, false, :type => :flag)
-  #   psr.define(:switch, false, :type => :switch)
-  #   psr.define(:list, [], :type => :list)
-  #
-  #   psr.parse("--flag --switch --list one --list two --list three")
-  #   psr.config             # => {:flag => true, :switch => true, :list => ['one', 'two', 'three']}
-  #
-  # New, valid types may be added by implementing new setup_<type> methods
-  # following this pattern:
-  #
-  #   module SpecialType
-  #     def setup_special(key, default_value, attributes)
-  #       # modify attributes if necessary
-  #       attributes[:long] = "--#{key}"
-  #       attributes[:arg_name] = 'ARG_NAME'
-  # 
-  #       # return a block handling the input
-  #       lambda {|input| config[key] = input.reverse }
-  #     end
-  #   end
-  #
-  #   psr = ConfigParser.new.extend SpecialType
-  #   psr.define(:opt, false, :type => :special)
-  #
-  #   psr.parse("--opt value")
-  #   psr.config             # => {:opt => 'eulav'}
-  #
-  # The :hidden type causes no configuration to be defined.  Raises an error if
-  # key is already set by a different option.
   def add(key, default=nil, *args, &block)
     attrs = args.last.kind_of?(Hash) ? args.pop : {}
     attrs = attrs.merge(:key => key, :default => default)
@@ -215,23 +176,25 @@ class ConfigParser
     on(*args, &block)
   end
   
+  # Removes options by key.  Any options with the specified key are removed.
+  # Returns self.
   def rm(key)
-    opts = options.values.select {|option| option.key == key }
-    opts.each {|option| unregister(option) }
-    opts
+    options.values.each do |option| 
+      if option.key == key 
+        unregister(option)
+      end
+    end
+    
+    self
   end
   
-  # Parses options from argv in a non-destructive manner and returns an
-  # array of arguments remaining after options have been removed. If a 
-  # string argv is provided, it will be splits into an array using 
+  # Parses options from argv in a non-destructive manner. Parsing stops if an
+  # argument matching option_break is reached. If preserve_option_break is
+  # specified then the option break is preserved in the remaining arguments. 
+  # Returns an array of arguments remaining after options have been removed.
+  #
+  # If a string argv is provided, it will be splits into an array using
   # Shellwords.
-  #
-  # ==== Options
-  #
-  # clear_config:: clears the currently parsed configs (true)
-  # add_defaults:: adds the default values to config (true)
-  # ignore_unknown_options:: causes unknown options to be ignored (false)
-  #
   def parse(argv=ARGV)
     argv = argv.dup unless argv.kind_of?(String)
     parse!(argv)
@@ -249,20 +212,12 @@ class ConfigParser
     end
     
     args = []
-    remainder = scan(argv) {|arg| args << arg }
-    args.concat(remainder)
-    argv.replace(args)
-    
-    argv
-  end
-  
-  def scan(argv=ARGV)
     while !argv.empty?
       arg = argv.shift
   
       # determine if the arg is an option
-      unless arg.kind_of?(String) && arg[0] == ?-
-        yield(arg)
+      unless option?(arg)
+        args << arg
         next
       end
       
@@ -293,6 +248,9 @@ class ConfigParser
       
       option.parse(flag, value, argv, config)
     end
+    
+    args.concat(argv)
+    argv.replace(args)
     
     argv
   end

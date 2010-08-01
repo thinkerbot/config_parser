@@ -10,6 +10,9 @@ class ConfigParser
     # The default option break
     OPTION_BREAK = "--"
     
+    # Matches an option (long or short)
+    OPTION = /\A-./
+    
     # Matches a long flag
     LONG_FLAG = /\A--.+\z/
 
@@ -86,7 +89,7 @@ class ConfigParser
     
     # Returns true if the object is a string and matches OPTION.
     def option?(obj)
-      obj.kind_of?(String) && obj =~ /\A-./ ? true : false
+      obj.kind_of?(String) && obj =~ OPTION ? true : false
     end
     
     # Shifts and returns the first argument off of argv if it is an argument
