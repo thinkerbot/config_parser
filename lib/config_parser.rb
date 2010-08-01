@@ -1,114 +1,11 @@
 require 'config_parser/list'
 autoload(:Shellwords, 'shellwords')
 
-# ConfigParser is the Configurable equivalent of 
-# {OptionParser}[http://www.ruby-doc.org/core/classes/OptionParser.html]
-# and uses a similar, simplified (see below) syntax to declare options.
-#
-#   opts = {}
-#   parser = ConfigParser.new do |psr|
-#     psr.on "-s", "--long LONG", "a standard option" do |value|
-#       opts[:long] = value
-#     end
-#   
-#     psr.on "--[no-]switch", "a switch" do |value|
-#       opts[:switch] = value
-#     end
-#
-#     psr.on "--flag", "a flag" do
-#       # note: no value is parsed; the block 
-#       # only executes if the flag is found
-#       opts[:flag] = true
-#     end
-#   end
-#
-#   parser.parse("a b --long arg --switch --flag c")   # => ['a', 'b', 'c']
-#   opts             # => {:long => 'arg', :switch => true, :flag => true}
-#
-# ConfigParser formalizes this pattern of setting values in a hash as they
-# occur, and adds the ability to specify default values.  The syntax is
-# not quite as friendly as for ordinary options, but meshes well with
-# Configurable classes:
-#
-#   psr = ConfigParser.new
-#   psr.define(:key, 'default', :desc => 'a standard option')
-#
-#   psr.parse('a b --key option c')                 # => ['a', 'b', 'c']
-#   psr.config                                      # => {:key => 'option'}
-#
-#   psr.parse('a b c')                              # => ['a', 'b', 'c']
-#   psr.config                                      # => {:key => 'default'}
-#
-# And now directly from a Configurable class, the equivalent of the
-# original example:
-#
-#   class ConfigClass
-#     include Configurable
-#
-#     config :long, 'default', :short => 's'  # a standard option
-#     config :switch, false, &c.switch        # a switch
-#     config :flag, false, &c.flag            # a flag
-#   end
-#
-#   psr = ConfigParser.new
-#   psr.add(ConfigClass.configurations)
-#
-#   psr.parse("a b --long arg --switch --flag c")   # => ['a', 'b', 'c']
-#   psr.config    # => {:long => 'arg', :switch => true, :flag => true}
-#
-#   psr.parse("a b --long=arg --no-switch c")       # => ['a', 'b', 'c']
-#   psr.config    # => {:long => 'arg', :switch => false, :flag => false}
-#
-#   psr.parse("a b -sarg c")                        # => ['a', 'b', 'c']
-#   psr.config    # => {:long => 'arg', :switch => false, :flag => false}
-#
-# As you might expect, config attributes are used by ConfigParser to 
-# correctly build a corresponding option.  In configurations like :switch, 
-# the block implies the {:type => :switch} attribute and so the
-# config is made into a switch-style option by ConfigParser.
-#
-# Use the to_s method to convert a ConfigParser into command line
-# documentation:
-#
-#   "\nconfigurations:\n#{psr.to_s}"
-#   # => %q{
-#   # configurations:
-#   #     -s, --long LONG                  a standard option
-#   #         --[no-]switch                a switch
-#   #         --flag                       a flag
-#   # }
-#
-# ==== Simplifications
-#
-# ConfigParser simplifies the OptionParser syntax for 'on'.  ConfigParser does
-# not support automatic conversion of values, gets rid of 'optional' arguments
-# for options, and only supports a single description string.  Hence:
-#
-#   psr = ConfigParser.new
-#  
-#   # incorrect, raises error as this will look
-#   # like multiple descriptions are specified
-#   psr.on("--delay N", 
-#          Float,
-#          "Delay N seconds before executing")        # !> ArgumentError
-#
-#   # correct
-#   psr.on("--delay N", "Delay N seconds before executing") do |value|
-#     value.to_f
-#   end
-#
-#   # this ALWAYS requires the argument and raises
-#   # an error because multiple descriptions are
-#   # specified
-#   psr.on("-i", "--inplace [EXTENSION]",
-#          "Edit ARGV files in place",
-#          "  (make backup if EXTENSION supplied)")   # !> ArgumentError
-#
-#   # correct
-#   psr.on("-i", "--inplace EXTENSION", 
-#          "Edit ARGV files in place\n  (make backup if EXTENSION supplied)")
-#
-#
+# ConfigParser is an option parser that formalizes the pattern of setting
+# parsed options into a hash. ConfigParser provides a similar declaration
+# syntax as
+# {OptionParser}[http://www.ruby-doc.org/core/classes/OptionParser.html] but
+# additionally supports option declaration using an attributes hash.
 class ConfigParser
   include Utils
   
@@ -120,13 +17,13 @@ class ConfigParser
   # '--long' to the Option that handles them.
   attr_reader :options
   
-  # The hash receiving configurations produced by parse.
+  # The hash receiving configs.
   attr_accessor :config
   
   # The argument to stop processing options
   attr_accessor :option_break
   
-  # Set to true to preserve the break argument
+  # Set to true to preserve the option break
   attr_accessor :preserve_option_break
   
   # Set to true to assign config defaults on parse
@@ -165,8 +62,9 @@ class ConfigParser
     @registry << str
   end
 
-  # Registers the option with self by adding opt to options and mapping the
-  # opt flags. Raises an error for conflicting flags.
+  # Registers the option with self by adding it to the registry and mapping
+  # the option flags into options. Raises an error for conflicting flags.
+  # Returns self.
   #
   # If override is specified, options with conflicting flags are removed and
   # no error is raised.  Note that this may remove multiple options.
@@ -192,58 +90,73 @@ class ConfigParser
       @options[flag] = option
     end
     
-    option
+    self
   end
   
+  # Unregisters the option by removing it from the registry and options.
+  # Returns self.
   def unregister(option)
     @registry.delete(option)
     @options.delete_if {|key, value| option == value }
-    option
+    self
   end
   
-  # Constructs an Option using args and registers it with self.  Args may
+  # Constructs an Option using args and registers it with self. The args may
   # contain (in any order) a short switch, a long switch, and a description
-  # string.  Either the short or long switch may signal that the option
-  # should take an argument by providing an argument name.
+  # string. A block may be provided to process values for the option.
+  #
+  # The option type (flag, switch, list, or option) is guessed from the args,
+  # and affects what is passed to the block.
   #
   #   psr = ConfigParser.new
   #
-  #   # this option takes an argument
-  #   psr.on('-s', '--long ARG_NAME', 'description') do |value|
+  #   # options take an argument on the long
+  #   # and receive the arg in the block
+  #   psr.on('-s', '--long ARG_NAME', 'description') do |arg|
   #     # ...
   #   end
   #
-  #   # so does this one
-  #   psr.on('-o ARG_NAME', 'description') do |value|
+  #   # the argname can be specified on a short
+  #   psr.on('-o ARG_NAME') do |arg|
   #     # ...
   #   end
-  #   
-  #   # this option does not
+  #     
+  #   # use an argname with commas to make a list,
+  #   # an array of values is passed to the block
+  #   psr.on('--list A,B,C') do |args|
+  #     # ...
+  #   end
+  #
+  #   # flags specify no argument, and the
+  #   # block takes no argument
   #   psr.on('-f', '--flag') do
   #     # ...
   #   end
   #
-  # A switch-style option can be specified by prefixing the long switch with
-  # '--[no-]'.  Switch options will pass true to the block for the positive
-  # form and false for the negative form.
-  #
-  #   psr.on('--[no-]switch') do |value|
+  #   # switches look like this; they get true
+  #   # or false in the block
+  #   psr.on('--[no-]switch') do |bool|
   #     # ...
   #   end
   #
-  # Args may also contain a trailing hash defining all or part of the option:
+  # If this is too ambiguous (and at times it is), provide a trailing hash
+  # defining all or part of the option:
   #
-  #   psr.on('-k', :long => '--key', :desc => 'description')
+  #   psr.on('-k', 'description', :long => '--key', :type => :list) do |args|
   #     # ...
   #   end
-  #
+  #         
   def on(*args, &block)
-    register new_option(args, &block)
+    option = new_option(args, &block)
+    register option
+    option
   end
   
-  # Same as on, but overrides options with overlapping switches.
+  # Same as on, but overrides options with overlapping flags.
   def on!(*args, &block)
-    register new_option(args, &block), true
+    option = new_option(args, &block)
+    register option, true
+    option
   end
   
   # Defines and registers a config-style option with self.  Define does not

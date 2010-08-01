@@ -32,24 +32,42 @@ class ReadmeTest < Test::Unit::TestCase
     #
 
     parser = ConfigParser.new
-    parser.add(:key, 'default')
-
-    assert_equal ['a', 'b', 'c'], parser.parse('a b --key option c')
-    assert_equal({:key => 'option'}, parser.config)
+    parser.add :flag, false   
+    parser.add :switch, true  
+    parser.add :list, []      
+    parser.add :opt, 'default'
 
     assert_equal ['a', 'b', 'c'], parser.parse('a b c')
-    assert_equal({:key => 'default'}, parser.config)
+    
+    expected = {
+      :flag   => false,
+      :switch => true,
+      :list   => [],
+      :opt    => 'default'
+    }
+    assert_equal expected, parser.config
+
+    args = %w{a b --flag --no-switch --list one --list two,three --opt value c}
+    assert_equal ['a', 'b', 'c'], parser.parse(args)
+    
+    expected = {
+      :flag   => true,
+      :switch => false,
+      :list   => ['one', 'two', 'three'],
+      :opt    => 'value'
+    }
+    assert_equal expected, parser.config
 
     #
 
     parser = ConfigParser.new
-    parser.add(:x, nil, '-o', '--one', 'by args') {|value| value.upcase }
-    parser.add(:y, false, :long => 'two', :desc => 'by hash')
+    parser.add(:x, nil, '--one', 'by args') {|value| value.upcase }
+    parser.add(:y, nil, :long => 'two', :desc => 'by hash')
 
     expected = ['a', 'b', 'c']
-    assert_equal(expected, parser.parse('a b --one value --two c'))
+    assert_equal(expected, parser.parse('a b --one value --two value c'))
 
-    expected = {:x => 'VALUE', :y => true}
+    expected = {:x => 'VALUE', :y => 'value'}
     assert_equal(expected, parser.config)
   end
 end

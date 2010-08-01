@@ -7,14 +7,14 @@ Parse command-line options into a configuration hash.
 ConfigParser is an analogue of
 {OptionParser}[http://www.ruby-doc.org/core/classes/OptionParser.html] that
 formalizes the pattern of setting parsed options into a hash. ConfigParser
-uses a similar, simplified declaration syntax that places less emphasis on the
-conversion of inputs to objects, preferring instead to delegate that
-responsibility to whatever consumes the hash.
+uses a similar, simplified declaration syntax and provides an API that
+integrates well with libraries like
+{Configurable}[http://tap.rubyforge.org/configurable].
 
 == Usage
 
-ConfigParser can be used much like OptionParser, where the parser itself can
-be used as a delegate to a config hash.
+ConfigParser can be used much like OptionParser, where the parser can set
+values into a config hash.
 
   parser = ConfigParser.new
   parser.on '-s', '--long LONG', 'a standard option' do |value|
@@ -46,31 +46,42 @@ ConfigParser formalizes this pattern of setting values into a config hash as
 they occur, and adds the ability to specify default values.
 
   parser = ConfigParser.new
-  parser.add(:key, 'default')
+  parser.add :flag, false            # false as a default makes a --flag
+  parser.add :switch, true           # true makes a --[no-]switch
+  parser.add :list, []               # an array makes a list-style option
+  parser.add :opt, 'default'         # all others make an ordinary option
 
-  parser.parse('a b --key option c')             # => ['a', 'b', 'c']
-  parser.config                                  # => {:key => 'option'}
-                                                 
-  parser.parse('a b c')                          # => ['a', 'b', 'c']
-  parser.config                                  # => {:key => 'default'}
+  parser.parse('a b c')              # => ['a', 'b', 'c']
+  parser.config
+  # => {
+  #   :flag   => false,
+  #   :switch => true,
+  #   :list   => [],
+  #   :opt    => 'default'
+  # }
+  
+  args = %w{a b --flag --no-switch --list one --list two,three --opt value c}
+  parser.parse(args)                 # => ['a', 'b', 'c']
+  parser.config
+  # => {
+  #   :flag   => true,
+  #   :switch => false,
+  #   :list   => ['one', 'two', 'three'],
+  #   :opt    => 'value'
+  # }
 
-Config keys may be mapped to options using arguments like those given to 'on',
-or using an options hash. A block can be given to processes values before they
-are set as configs.
+Options can be defined using arguments just like on, or with an attributes
+hash. A block can be given to process values before they are set as configs.
 
   parser = ConfigParser.new
-  parser.add(:x, nil, '-o', '--one', 'by args') {|value| value.upcase }
-  parser.add(:y, false, :long => 'two', :desc => 'by hash')
+  parser.add(:x, nil, '--one', 'by args') {|value| value.upcase }
+  parser.add(:y, nil, :long => 'two', :desc => 'by hash')
   
-  parser.parse('a b --one value --two c')
+  parser.parse('a b --one value --two value c')
   # => ['a', 'b', 'c']
   
   parser.config
-  # => {:x => 'VALUE', :y => true}
-
-ConfigParser integrates well with libraries like
-{Configurable}[http://tap.rubyforge.org/configurable] that are designed to set
-configurations via a config hash.
+  # => {:x => 'VALUE', :y => 'value'}
 
 == Installation
 

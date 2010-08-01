@@ -167,7 +167,7 @@ class ConfigParser
     #
     #   if...            then...
     #   prefix      =>   :switch
-    #   arg_name    =>   (guess_type_by_value)
+    #   arg_name    =>   guess_type_by_arg_name || guess_type_by_value
     #   default     =>   (guess_type_by_value)
     #   all else    =>   :flag
     #
@@ -176,11 +176,18 @@ class ConfigParser
       case
       when attrs.has_key?(:prefix)
         :switch
-      when attrs.has_key?(:arg_name) || attrs.has_key?(:default)
+      when attrs.has_key?(:arg_name)
+        guess_type_by_arg_name(attrs[:arg_name]) || guess_type_by_value(attrs[:default])
+      when attrs.has_key?(:default)
         guess_type_by_value(attrs[:default])
       else
         :flag
       end
+    end
+    
+    # Guesses :list if the arg_name has a comma, or nil.
+    def guess_type_by_arg_name(arg_name)
+      arg_name.to_s.include?(',') ? :list : nil
     end
     
     # Guesses an option type based on a value.

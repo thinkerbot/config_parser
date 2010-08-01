@@ -176,6 +176,11 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal ConfigParser::Option, opt.class
   end
   
+  def test_on_creates_list_for_argname_with_commas
+    opt = c.on(:arg_name => 'A,B,C')
+    assert_equal ConfigParser::List, opt.class
+  end
+  
   def test_on_creates_flag_option_for_options_without_arg_name
     opt = c.on('--long')
     assert_equal ConfigParser::Flag, opt.class
