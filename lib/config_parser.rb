@@ -120,7 +120,7 @@ class ConfigParser
   #   psr.on('-o ARG_NAME') do |arg|
   #     # ...
   #   end
-  #     
+  #       
   #   # use an argname with commas to make a list,
   #   # an array of values is passed to the block
   #   psr.on('--list A,B,C') do |args|
@@ -145,7 +145,9 @@ class ConfigParser
   #   psr.on('-k', 'description', :long => '--key', :type => :list) do |args|
   #     # ...
   #   end
-  #         
+  #   
+  # The trailing hash wins if there is any overlap in the parsed attributes
+  # and those provided by the hash.
   def on(*args, &block)
     option = new_option(args, &block)
     register option
@@ -282,7 +284,7 @@ class ConfigParser
   # by on and on! to generate options
   def new_option(argv, &block) # :nodoc:
     attrs = argv.last.kind_of?(Hash) ? argv.pop : {}
-    attrs = attrs.merge parse_attrs(argv)
+    attrs = parse_attrs(argv).merge(attrs)
     option_class(attrs).new(attrs, &block)
   end
 end

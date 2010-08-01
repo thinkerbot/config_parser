@@ -196,6 +196,11 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal ConfigParser::List, opt.class
   end
   
+  def test_options_override_args
+    opt = c.on('--a:b', :nest_keys => ['c'])
+    assert_equal ['c'], opt.nest_keys
+  end
+  
   def test_on_raises_error_when_arg_name_is_specified_for_switch
     err = assert_raises(ArgumentError) { c.on('--[no-]opt VALUE') }
     assert_equal 'arg_name specified for switch: VALUE', err.message
