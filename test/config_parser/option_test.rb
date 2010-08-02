@@ -25,6 +25,28 @@ class OptionTest < Test::Unit::TestCase
     assert_equal ['b'], argv
   end
   
+  def test_parse_uses_default_value_if_no_value_is_available_and_optional
+    value_in_block = nil
+    opt = Option.new(:default => 'value', :optional => true) {|value| value_in_block = value }
+    
+    argv = ['-a']
+    opt.parse('--opt', nil, argv)
+    
+    assert_equal 'value', value_in_block
+    assert_equal ['-a'], argv
+  end
+  
+  def test_parse_shifts_value_from_argv_if_a_value_is_available
+    value_in_block = nil
+    opt = Option.new(:default => 'value', :optional => true) {|value| value_in_block = value }
+    
+    argv = ['a', 'b']
+    opt.parse('--opt', nil, argv)
+    
+    assert_equal 'a', value_in_block
+    assert_equal ['b'], argv
+  end
+  
   def test_parse_raises_error_if_no_value_is_provided_and_argv_is_empty
     e = assert_raises(RuntimeError) { opt.parse('--opt', nil, []) }
     assert_equal "no value provided for: --opt", e.message

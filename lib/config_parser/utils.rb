@@ -94,8 +94,8 @@ class ConfigParser
     
     # Shifts and returns the first argument off of argv if it is an argument
     # (rather than an option) or returns the default value.
-    def next_arg(argv, default=nil)
-      option?(argv.at(0)) ? default : argv.shift
+    def next_arg(argv)
+      option?(argv.at(0)) ? nil : argv.shift
     end
     
     # A wrapping algorithm slightly modified from:

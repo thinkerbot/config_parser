@@ -155,6 +155,14 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal 'option description', opt.desc
   end
   
+  def test_on_parses_optional_argname
+    opt = c.on('--mandatory ARGNAME')
+    assert_equal false, opt.optional
+    
+    opt = c.on('--required [ARGNAME]')
+    assert_equal true, opt.optional
+  end
+  
   def test_on_parses_nested_long_option
     opt = c.on('--nest:long')
     assert_equal ['nest'], opt.nest_keys
@@ -431,6 +439,19 @@ class ConfigParserTest < Test::Unit::TestCase
     c.on('--opt VALUE')
     err = assert_raises(RuntimeError) { c.parse %w{--opt} }
     assert_equal 'no value provided for: --opt', err.message
+  end
+  
+  def test_parse_uses_default_if_no_value_is_available_and_value_is_optional
+    c.add(:one, 1, :optional => true)
+    c.add(:two, 2, :optional => true)
+    
+    args = c.parse %w{a --one --two 2 b}
+    assert_equal({:one => 1, :two => '2'}, c.config)
+    assert_equal %w{a b}, args
+    
+    args = c.parse %w{a b --one}
+    assert_equal({:one => 1, :two => 2}, c.config)
+    assert_equal %w{a b}, args
   end
   
   def test_parse_stops_parsing_on_option_break

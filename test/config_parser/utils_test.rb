@@ -157,8 +157,4 @@ class ConfigParser::UtilsTest < Test::Unit::TestCase
     assert_equal nil, next_arg(args)
     assert_equal %w{-b c}, args
   end
-  
-  def test_next_arg_returns_default_if_the_next_arg_is_an_option
-    assert_equal 'a', next_arg(%w{-b c}, 'a')
-  end
 end
