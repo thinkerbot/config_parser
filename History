@@ -1,3 +1,7 @@
+== 0.2.0 / 2010-08-01
+
+Release candidate with cleaner implementation and accurate documentation.
+
 == 0.1.0 / 2010-07-25
 
 Initial release after extraction and cleanup from Configurable. Intended as a
