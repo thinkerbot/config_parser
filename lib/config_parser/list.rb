@@ -9,9 +9,6 @@ class ConfigParser
     # The default split character for multiple values
     DELIMITER = ','
     
-    # The maximum number of values that may be specified; nil for unlimited.
-    attr_reader :limit
-    
     # The delimiter on which to split single values into multiple values; use
     # nil to prevent splitting.
     attr_reader :delimiter
@@ -20,7 +17,6 @@ class ConfigParser
       super
       
       @delimiter = attrs.has_key?(:delimiter) ? attrs[:delimiter] : DELIMITER
-      @limit   = attrs[:limit]
       @default = split(@default)
     end
     
@@ -37,10 +33,6 @@ class ConfigParser
         nest_config = nest(config)
         array = (nest_config[key] ||= [])
         array.concat(values)
-      
-        if limit && array.length > limit
-          raise "too many assignments for #{key.inspect}"
-        end
       end
       
       config

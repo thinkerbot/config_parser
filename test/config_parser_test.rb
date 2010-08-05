@@ -701,12 +701,6 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal %w{a b}, args
   end
   
-  def test_parse_list_with_limit_raises_error_for_too_many_entries
-    c.add(:opt, [], :short => 'o', :limit => 1)
-    err = assert_raises(RuntimeError) { c.parse %w{a --opt one -o two b} }
-    assert_equal 'too many assignments for :opt', err.message
-  end
-  
   #
   # to_s test
   #
