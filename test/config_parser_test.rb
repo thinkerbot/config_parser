@@ -127,6 +127,25 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   #
+  # sort_opts!
+  #
+  
+  def test_sort_opts_sorts_options_in_the_registry_in_groups_defined_by_separators
+   z = c.register Option.new(:long => 'zzz')
+   x = c.register Option.new(:long => 'xxx')
+   y = c.register Option.new(:long => 'yyy')
+   
+   c.separator ''
+   
+   p = c.register Option.new(:short => 'p')
+   r = c.register Option.new(:short => 'r')
+   q = c.register Option.new(:short => 'q')
+   
+   c.sort_opts!
+   assert_equal [x, y, z, '', p, q, r], c.registry
+  end
+  
+  #
   # on test
   #
   

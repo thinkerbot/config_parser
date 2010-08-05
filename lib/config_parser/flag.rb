@@ -130,6 +130,11 @@ class ConfigParser
       end
     end
     
+    # Returns an inspect string.
+    def inspect
+      "#<#{self.class}:#{object_id} key=#{key.inspect} default=#{default.inspect} long=#{long.inspect} short=#{short.inspect}>"
+    end
+    
     private
     
     def header_str # :nodoc:

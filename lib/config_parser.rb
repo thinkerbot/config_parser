@@ -64,12 +64,12 @@ class ConfigParser
 
   # Registers the option with self by adding it to the registry and mapping
   # the option flags into options. Raises an error for conflicting flags.
-  # Returns self.
+  # Returns option.
   #
   # If override is specified, options with conflicting flags are removed and
   # no error is raised.  Note that this may remove multiple options.
   def register(option, override=false)
-    return if option.nil?
+    return nil if option.nil?
     
     if override
       existing = option.flags.collect {|flag| @options.delete(flag) }
@@ -90,14 +90,41 @@ class ConfigParser
       @options[flag] = option
     end
     
-    self
+    option
   end
   
   # Unregisters the option by removing it from the registry and options.
-  # Returns self.
+  # Returns option.
   def unregister(option)
     @registry.delete(option)
     @options.delete_if {|key, value| option == value }
+    option
+  end
+  
+  # Sorts options in the registry as specified by the block.  Groups of
+  # options as delimited by separators are sorted independently.  If no
+  # block is given, options are sorted by their long and short keys.
+  def sort_opts!(&block)
+    block ||= lambda {|option| option.long || option.short }
+    
+    splits = []
+    current = []
+    
+    options = self.options.values.uniq
+    registry.each do |option|
+      if options.include?(option)
+        current << option
+      else
+        splits << current
+        splits << option
+        current = []
+      end
+    end
+    
+    splits << current
+    @registry = splits.collect {|split| split.kind_of?(Array) ? split.sort_by(&block) : split }
+    @registry.flatten!
+    
     self
   end
   
@@ -149,16 +176,12 @@ class ConfigParser
   # The trailing hash wins if there is any overlap in the parsed attributes
   # and those provided by the hash.
   def on(*args, &block)
-    option = new_option(args, &block)
-    register option
-    option
+    register new_option(args, &block)
   end
   
   # Same as on, but overrides options with overlapping flags.
   def on!(*args, &block)
-    option = new_option(args, &block)
-    register option, true
-    option
+    register new_option(args, &block), true
   end
   
   # An alternate syntax for on, where the key and default attributes are set
@@ -179,15 +202,15 @@ class ConfigParser
   end
   
   # Removes options by key.  Any options with the specified key are removed.
-  # Returns self.
+  # Returns the removed options.
   def rm(key)
-    options.values.each do |option| 
+    options.values.collect do |option| 
       if option.key == key 
         unregister(option)
+      else
+        nil
       end
-    end
-    
-    self
+    end.compact
   end
   
   # Parses options from argv in a non-destructive manner. Parsing stops if an
