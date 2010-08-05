@@ -200,7 +200,7 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   def test_on_allows_manual_specification_of_type
-    opt = c.on('--[no-]switch', '-s ARGNAME', :type => :list)
+    opt = c.on('--[no-]switch', '-s ARGNAME', :opt_type => :list)
     assert_equal ConfigParser::List, opt.class
   end
   
@@ -255,9 +255,9 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal({:one => 'one', :two => 'two'}, psr.config)
   
     psr = ConfigParser.new
-    psr.add(:flag, false, :type => :flag)
-    psr.add(:switch, true, :type => :switch)
-    psr.add(:list, [], :type => :list)
+    psr.add(:flag, false, :opt_type => :flag)
+    psr.add(:switch, true, :opt_type => :switch)
+    psr.add(:list, [], :opt_type => :list)
   
     psr.parse("--flag --switch --list one --list two --list three")
     assert_equal({:flag => true, :switch => true, :list => ['one', 'two', 'three']}, psr.config)
@@ -289,7 +289,7 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   def test_add_parses_args_like_on
-    opt = c.add(:key, 'value', '--long', '-s', :type => :list)
+    opt = c.add(:key, 'value', '--long', '-s', :opt_type => :list)
     assert_equal '--long', opt.long
     assert_equal '-s', opt.short
     assert_equal ConfigParser::List, opt.class
@@ -581,7 +581,7 @@ class ConfigParserTest < Test::Unit::TestCase
   #
   
   def test_parse_flag_sets_negative_default_in_config
-    c.add(:key, false, :type => :flag)
+    c.add(:key, false, :opt_type => :flag)
 
     c.parse %w{a b c}
     assert_equal({:key => false}, c.config)
@@ -591,7 +591,7 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   def test_parse_nests_as_specified
-    c.add(:c, false, :long => 'key', :nest_keys => [:a, :b], :type => :flag)
+    c.add(:c, false, :long => 'key', :nest_keys => [:a, :b], :opt_type => :flag)
     
     c.parse %w{a --key c}
     assert_equal({:a => {:b => {:c => true}}}, c.config)
@@ -626,7 +626,7 @@ class ConfigParserTest < Test::Unit::TestCase
   #
   
   def test_parse_switch_sets_default_in_config
-    c.add(:key, true, :type => :switch)
+    c.add(:key, true, :opt_type => :switch)
 
     c.parse %w{a b c}
     assert_equal({:key => true}, c.config)
@@ -708,9 +708,9 @@ class ConfigParserTest < Test::Unit::TestCase
   def test_to_s
     c.on('--opt OPT', '-o', 'desc')
     c.separator "specials:"
-    c.add('switch', true, :type => :switch)
-    c.add('flag', true, :type => :flag)
-    c.add('list', true, :type => :list, :long => '--list', :split => ',')
+    c.add('switch', true, :opt_type => :switch)
+    c.add('flag', true, :opt_type => :flag)
+    c.add('list', true, :opt_type => :list, :long => '--list', :split => ',')
     
     expected = %Q{
     -o, --opt OPT                    desc

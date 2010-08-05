@@ -112,14 +112,14 @@ class ConfigParser
     #   -s                  :short => '-s'
     #   --long              :long => '--long'
     #   --long ARG          :long => '--long', :arg_name => 'ARG'
-    #   --[no-]long         :long => '--long', :prefix => 'no', :type => :switch
+    #   --[no-]long         :long => '--long', :prefix => 'no', :opt_type => :switch
     #   --nest:long         :long => '--nest:long', :nest_keys => ['nest']
     #   'some string'       :desc => 'some string'
     #
     # Usually you overlay these patterns, for example:
     #
     #   -s ARG              :short => '-s', :arg_name => 'ARG'
-    #   --nest:[no-]long    :long => '--nest:long', :nest_keys => ['nest'], :prefix => 'no', :type => :switch
+    #   --nest:[no-]long    :long => '--nest:long', :nest_keys => ['nest'], :prefix => 'no', :opt_type => :switch
     #
     # The goal of this method is to get things right most of the time, not to
     # be clean, simple, or robust.  Some errors in declarations (like an
