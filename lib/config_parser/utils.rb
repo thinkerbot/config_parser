@@ -112,14 +112,14 @@ class ConfigParser
     #   -s                  :short => '-s'
     #   --long              :long => '--long'
     #   --long ARG          :long => '--long', :arg_name => 'ARG'
-    #   --[no-]long         :long => '--long', :prefix => 'no', :opt_type => :switch
+    #   --[no-]long         :long => '--long', :prefix => 'no', :option_type => :switch
     #   --nest:long         :long => '--nest:long', :nest_keys => ['nest']
     #   'some string'       :desc => 'some string'
     #
     # Usually you overlay these patterns, for example:
     #
     #   -s ARG              :short => '-s', :arg_name => 'ARG'
-    #   --nest:[no-]long    :long => '--nest:long', :nest_keys => ['nest'], :prefix => 'no', :opt_type => :switch
+    #   --nest:[no-]long    :long => '--nest:long', :nest_keys => ['nest'], :prefix => 'no', :option_type => :switch
     #
     # The goal of this method is to get things right most of the time, not to
     # be clean, simple, or robust.  Some errors in declarations (like an
@@ -170,26 +170,26 @@ class ConfigParser
     #
     #   if...            then...
     #   prefix      =>   :switch
-    #   arg_name    =>   guess_type_by_arg_name || guess_type_by_value
-    #   default     =>   (guess_type_by_value)
+    #   arg_name    =>   guess_option_type_by_arg_name || guess_option_type_by_value
+    #   default     =>   (guess_option_type_by_value)
     #   all else    =>   :flag
     #
     # A guess is just a guess; for certainty specify the type manually.
-    def guess_type(attrs)
+    def guess_option_type(attrs)
       case
       when attrs.has_key?(:prefix)
         :switch
       when attrs.has_key?(:arg_name)
-        guess_type_by_arg_name(attrs[:arg_name]) || guess_type_by_value(attrs[:default])
+        guess_option_type_by_arg_name(attrs[:arg_name]) || guess_option_type_by_value(attrs[:default])
       when attrs.has_key?(:default)
-        guess_type_by_value(attrs[:default])
+        guess_option_type_by_value(attrs[:default])
       else
         :flag
       end
     end
     
     # Guesses :list if the arg_name has a comma, or nil.
-    def guess_type_by_arg_name(arg_name)
+    def guess_option_type_by_arg_name(arg_name)
       arg_name.to_s.include?(',') ? :list : nil
     end
     
@@ -202,7 +202,7 @@ class ConfigParser
     #   all else    =>   :option
     #
     # A guess is just a guess; for certainty specify the type manually.
-    def guess_type_by_value(value)
+    def guess_option_type_by_value(value)
       case value
       when true  then :switch
       when false then :flag

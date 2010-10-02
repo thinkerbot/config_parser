@@ -169,7 +169,7 @@ class ConfigParser
   # If this is too ambiguous (and at times it is), provide a trailing hash
   # defining all or part of the option:
   #
-  #   psr.on('-k', 'description', :long => '--key', :opt_type => :list) do |args|
+  #   psr.on('-k', 'description', :long => '--key', :option_type => :list) do |args|
   #     # ...
   #   end
   #   
@@ -291,7 +291,7 @@ class ConfigParser
   protected
   
   def option_class(attrs) # :nodoc:
-    type = attrs[:opt_type] || guess_type(attrs)
+    type = attrs[:option_type] || guess_option_type(attrs)
     
     case type
     when :option then Option
