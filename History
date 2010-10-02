@@ -1,3 +1,9 @@
+== 0.3.0 / 2010-10-02
+
+* Cleanup of some variable and option names
+* Removed limits on lists
+* Updated to bundler 1.0
+
 == 0.2.0 / 2010-08-01
 
 Release candidate with cleaner implementation and accurate documentation.
