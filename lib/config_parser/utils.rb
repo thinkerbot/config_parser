@@ -23,7 +23,7 @@ class ConfigParser
     # match:
     #   
     #   $1:: the nesting prefix ('nest')
-    #   $2:: the nolong prefix ('no')
+    #   $2:: the negative long prefix ('no')
     #   $3:: the long flag name ('opt')
     #
     SWITCH = /\A--(.*?)\[(.*?)-\](.+)\z/

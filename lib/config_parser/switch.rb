@@ -10,7 +10,7 @@ class ConfigParser
     attr_reader :prefix
     
     # The negative long flag, determined from long and prefix.
-    attr_reader :nolong
+    attr_reader :negative_long
     
     def initialize(attrs={})
       attrs[:default] = true unless attrs.has_key?(:default)
@@ -18,12 +18,12 @@ class ConfigParser
       
       raise ArgumentError, "no long specified" unless long
       @prefix = attrs[:prefix] || 'no'
-      @nolong = prefix_long(long, "#{prefix}-")
+      @negative_long = prefix_long(long, "#{prefix}-")
     end
     
-    # Returns an array of flags mapping to self (ie [long, nolong, short]).
+    # Returns an array of flags mapping to self (ie [long, negative_long, short]).
     def flags
-      [long, nolong, short].compact
+      [long, negative_long, short].compact
     end
     
     # Assigns default into config for positive flags and !default for negative
@@ -32,7 +32,7 @@ class ConfigParser
     def parse(flag, value=nil, argv=[], config={})
       raise "value specified for #{flag}: #{value.inspect}" if value
       
-      value = (flag == nolong ? !default : default)
+      value = (flag == negative_long ? !default : default)
       assign(config, process(value))
     end
 
