@@ -1,6 +1,7 @@
 require 'rake'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
+require 'bundler'
+Bundler::GemHelper.install_tasks
 
 #
 # Gem specification
@@ -10,10 +11,6 @@ def gemspec
   require 'rubygems/specification'
   path = File.expand_path('config_parser.gemspec')
   eval(File.read(path), binding, path, 0)
-end
-
-Rake::GemPackageTask.new(gemspec) do |pkg|
-  pkg.need_tar = true
 end
 
 desc 'Prints the gemspec manifest.'
@@ -31,7 +28,7 @@ task :print_manifest do
   # included already (marking by the absence
   # of a label)
   Dir.glob('**/*').each do |file|
-    next if file =~ /^(rdoc|pkg|backup|test|submodule|.*\.rbc)/ || File.directory?(file)
+    next if file =~ /^(rdoc|pkg|test|.*\.rbc)/ || File.directory?(file)
     
     path = File.expand_path(file)
     files[path] = ['', file] unless files.has_key?(path)
@@ -41,20 +38,6 @@ task :print_manifest do
   files.values.sort_by {|exists, file| file }.each do |entry| 
     puts '%-5s %s' % entry
   end
-end
-
-desc 'Publish RDoc to RubyForge'
-task :publish_rdoc => [:rdoc] do
-  require 'yaml'
-  
-  config = YAML.load(File.read(File.expand_path('~/.rubyforge/user-config.yml')))
-  host = "#{config['username']}@rubyforge.org"
-  
-  rsync_args = '-v -c -r'
-  remote_dir = '/var/www/gforge-projects/tap/configurable'
-  local_dir = 'rdoc'
- 
-  sh %{rsync #{rsync_args} #{local_dir}/ #{host}:#{remote_dir}}
 end
 
 #
@@ -77,12 +60,12 @@ end
 
 desc 'Bundle dependencies'
 task :bundle do
-  opts = %w{prd acp qa tst}.include?(ENV['WCIS_ENV']) ? ' --without=development' : ''
   output = `bundle check 2>&1`
   
   unless $?.to_i == 0
     puts output
-    stdout_sh "bundle install#{opts} 2>&1"
+    puts "bundle install 2>&1"
+    system "bundle install 2>&1"
     puts
   end
 end

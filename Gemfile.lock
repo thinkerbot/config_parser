@@ -1,0 +1,17 @@
+PATH
+  remote: .
+  specs:
+    config_parser (0.2.0)
+      lazydoc (~> 1.0)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    lazydoc (1.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  config_parser!
+  lazydoc (~> 1.0)
