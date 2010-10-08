@@ -1,3 +1,7 @@
+== 0.3.1 / 2010-10-07
+
+* added nest keys to default guess for long
+
 == 0.3.0 / 2010-10-02
 
 * Cleanup of some variable and option names

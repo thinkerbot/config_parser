@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   
   # dependencies
   s.add_dependency('lazydoc', '~> 1.0')
+  s.add_development_dependency('bundler', '~> 1.0')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{

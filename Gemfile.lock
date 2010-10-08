@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    config_parser (0.2.0)
+    config_parser (0.3.0)
       lazydoc (~> 1.0)
 
 GEM
@@ -13,5 +13,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  bundler (~> 1.0)
   config_parser!
   lazydoc (~> 1.0)
