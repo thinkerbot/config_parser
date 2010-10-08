@@ -39,6 +39,13 @@ class FlagTest < Test::Unit::TestCase
     assert_equal '--long', opt.long
   end
   
+  def test_initialize_sets_long_according_to_key_and_nest_key_if_unspecified
+    opt = Flag.new :key => :long, :nest_keys => [:nest, :ed]
+    assert_equal :long, opt.key
+    assert_equal [:nest, :ed], opt.nest_keys
+    assert_equal '--nest:ed:long', opt.long
+  end
+  
   def test_initialize_raises_error_for_invalid_long_flag
     err = assert_raises(ArgumentError) { Flag.new(:long => '') }
     assert_equal "invalid long flag: --", err.message
