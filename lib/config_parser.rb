@@ -130,7 +130,8 @@ class ConfigParser
   
   # Constructs an Option using args and registers it with self. The args may
   # contain (in any order) a short switch, a long switch, and a description
-  # string. A block may be provided to process values for the option.
+  # string. A callback may be provided as a block to process values for the
+  # option.
   #
   # The option type (flag, switch, list, or option) is guessed from the args,
   # and affects what is passed to the block.
@@ -147,7 +148,7 @@ class ConfigParser
   #   psr.on('-o ARG_NAME') do |arg|
   #     # ...
   #   end
-  #       
+  #               
   #   # use an argname with commas to make a list,
   #   # an array of values is passed to the block
   #   psr.on('--list A,B,C') do |args|
@@ -167,14 +168,18 @@ class ConfigParser
   #   end
   #
   # If this is too ambiguous (and at times it is), provide a trailing hash
-  # defining all or part of the option:
+  # defining all or part of the option.  Note any object that responds to call
+  # may be set as the callback:
   #
-  #   psr.on('-k', 'description', :long => '--key', :option_type => :list) do |args|
-  #     # ...
-  #   end
-  #   
+  #   psr.on('-k', 'description',
+  #     :long => '--key',
+  #     :option_type => :list,
+  #     :callback => lambda {|args| ... }
+  #   )
+  #
   # The trailing hash wins if there is any overlap in the parsed attributes
-  # and those provided by the hash.
+  # and those provided by the hash.  The block wins if both a block and a
+  # callback are given.
   def on(*args, &block)
     register new_option(args, &block)
   end
@@ -308,6 +313,7 @@ class ConfigParser
   def new_option(argv, &block) # :nodoc:
     attrs = argv.last.kind_of?(Hash) ? argv.pop : {}
     attrs = parse_attrs(argv).merge(attrs)
-    option_class(attrs).new(attrs, &block)
+    attrs[:callback] = block if block
+    option_class(attrs).new(attrs)
   end
 end

@@ -26,17 +26,17 @@ class ConfigParser
     # The description printed by to_s
     attr_reader :desc
     
-    # A callback for processing values
+    # A callback for processing values (must respond to call, or be nil)
     attr_reader :callback
     
-    def initialize(attrs={}, &callback)
+    def initialize(attrs={})
       @key       = attrs[:key]
       @nest_keys = attrs[:nest_keys]
       @default   = attrs[:default]
       @short     = shortify(attrs[:short])
       @long      = longify(attrs.has_key?(:long) ? attrs[:long] : default_long)
       @desc      = attrs[:desc]
-      @callback  = callback
+      @callback  = attrs[:callback]
     end
     
     # Returns an array of flags mapping to self (ie [long, short]).

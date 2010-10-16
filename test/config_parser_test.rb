@@ -160,7 +160,7 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal callback, opt.callback
   end
   
-  def test_on_uses_a_trailing_hash_for_options
+  def test_on_uses_a_trailing_hash_for_attrs
     opt = c.on('-s', :long => 'long')
     assert_equal '-s', opt.short
     assert_equal '--long', opt.long
@@ -223,9 +223,23 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal ConfigParser::List, opt.class
   end
   
-  def test_options_override_args
+  def test_on_allows_manual_specification_of_callback
+    callback = lambda {}
+    opt = c.on(:callback => callback)
+    assert_equal callback, opt.callback
+  end
+  
+  def test_attrs_override_args
     opt = c.on('--a:b', :nest_keys => ['c'])
     assert_equal ['c'], opt.nest_keys
+  end
+  
+  def test_block_overrides_callback_in_attrs
+    callback = lambda {}
+    overridden = lambda {}
+    
+    opt = c.on(:callback => overridden, &callback)
+    assert_equal callback, opt.callback
   end
   
   def test_on_raises_error_when_arg_name_is_specified_for_switch

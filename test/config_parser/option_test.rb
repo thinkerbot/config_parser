@@ -16,7 +16,7 @@ class OptionTest < Test::Unit::TestCase
   
   def test_parse_shifts_value_from_argv_if_no_value_is_given
     value_in_block = nil
-    opt = Option.new {|value| value_in_block = value }
+    opt = Option.new(:callback => lambda {|value| value_in_block = value })
     
     argv = ['a', 'b']
     opt.parse('--opt', nil, argv)
@@ -27,7 +27,11 @@ class OptionTest < Test::Unit::TestCase
   
   def test_parse_uses_default_value_if_no_value_is_available_and_optional
     value_in_block = nil
-    opt = Option.new(:default => 'value', :optional => true) {|value| value_in_block = value }
+    opt = Option.new(
+      :default => 'value',
+      :optional => true,
+      :callback => lambda {|value| value_in_block = value }
+    )
     
     argv = ['-a']
     opt.parse('--opt', nil, argv)
@@ -38,7 +42,11 @@ class OptionTest < Test::Unit::TestCase
   
   def test_parse_shifts_value_from_argv_if_a_value_is_available
     value_in_block = nil
-    opt = Option.new(:default => 'value', :optional => true) {|value| value_in_block = value }
+    opt = Option.new(
+      :default => 'value',
+      :optional => true,
+      :callback => lambda {|value| value_in_block = value }
+    )
     
     argv = ['a', 'b']
     opt.parse('--opt', nil, argv)

@@ -95,7 +95,7 @@ class FlagTest < Test::Unit::TestCase
   end
   
   def test_process_calls_callback_with_value_and_returns_result
-    opt = Flag.new {|input| input.upcase }
+    opt = Flag.new(:callback => lambda {|input| input.upcase })
     assert_equal 'VALUE', opt.process('value')
   end
   
