@@ -743,7 +743,7 @@ class ConfigParserTest < Test::Unit::TestCase
     c.separator "specials:"
     c.add('switch', true, :option_type => :switch)
     c.add('flag', true, :option_type => :flag)
-    c.add('list', true, :option_type => :list, :long => '--list', :split => ',')
+    c.add('list', [1,2,3], :option_type => :list, :long => '--list', :split => ',')
     
     expected = %Q{
     -o, --opt OPT                    desc

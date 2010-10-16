@@ -70,4 +70,11 @@ class OptionTest < Test::Unit::TestCase
     -s, --long ARGNAME               description of key                         }
     assert_equal expected, "\n#{opt.to_s}"
   end
+  
+  def test_to_s_adds_default_str_to_formatted_string
+    opt = Option.new(:long => 'long', :arg_name => 'ARGNAME', :default_str => 'default', :desc => "description of key")
+    expected = %q{
+        --long ARGNAME               description of key (default)               }
+    assert_equal expected, "\n#{opt.to_s}"
+  end
 end

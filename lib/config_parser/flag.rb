@@ -117,9 +117,9 @@ class ConfigParser
     
     # Formats self as a help string for use on the command line.
     def to_s
-      lines = wrap(desc.to_s, 43)
+      lines = wrap(desc_str, 43)
       
-      header =  header_str
+      header = header_str
       header = header.length > 36 ? header.ljust(80) : (LINE_FORMAT % [header, lines.shift])
       
       if lines.empty?
@@ -151,6 +151,10 @@ class ConfigParser
     
     def long_str # :nodoc:
       long
+    end
+    
+    def desc_str # :nodoc:
+      desc.to_s
     end
     
     def default_long # :nodoc:
