@@ -26,6 +26,9 @@ class ConfigParser
     # The description printed by to_s
     attr_reader :desc
     
+    # A hint printed by to_s, after desc.
+    attr_reader :hint
+    
     # A callback for processing values (must respond to call, or be nil)
     attr_reader :callback
     
@@ -36,6 +39,7 @@ class ConfigParser
       @short     = shortify(attrs[:short])
       @long      = longify(attrs.has_key?(:long) ? attrs[:long] : default_long)
       @desc      = attrs[:desc]
+      @hint      = attrs[:hint]
       @callback  = attrs[:callback]
     end
     
@@ -154,7 +158,14 @@ class ConfigParser
     end
     
     def desc_str # :nodoc:
-      desc.to_s
+      case
+      when hint.nil? && desc.nil?
+        ''
+      when hint.nil?
+        desc.to_s
+      else
+        "#{desc} (#{hint})"
+      end
     end
     
     def default_long # :nodoc:

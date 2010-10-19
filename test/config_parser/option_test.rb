@@ -72,9 +72,9 @@ class OptionTest < Test::Unit::TestCase
   end
   
   def test_to_s_adds_default_str_to_formatted_string
-    opt = Option.new(:long => 'long', :arg_name => 'ARGNAME', :default_str => 'default', :desc => "description of key")
+    opt = Option.new(:long => 'long', :arg_name => 'ARGNAME', :hint => 'ex: hint', :desc => "description of key")
     expected = %q{
-        --long ARGNAME               description of key (default)               }
+        --long ARGNAME               description of key (ex: hint)              }
     assert_equal expected, "\n#{opt.to_s}"
   end
 end
