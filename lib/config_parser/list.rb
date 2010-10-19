@@ -22,7 +22,7 @@ class ConfigParser
     
     # Splits the value into multiple values, and then process as usual.
     def process(value)
-      super split(value)
+      split(value).collect {|val| super(val) }
     end
     
     # Assigns the values to config by concatenating onto an array, rather than

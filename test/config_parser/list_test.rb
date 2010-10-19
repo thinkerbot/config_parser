@@ -22,6 +22,11 @@ class ListTest < Test::Unit::TestCase
     assert_equal [1,2,3], opt.process([1,2,3])
   end
   
+  def test_process_passes_each_arg_to_the_block_for_processing
+    opt = List.new(:callback => lambda {|arg| Integer(arg) })
+    assert_equal [1,2,3], opt.process('1,2,3')
+  end
+  
   #
   # assign test
   #

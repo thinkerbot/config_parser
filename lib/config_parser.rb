@@ -150,8 +150,8 @@ class ConfigParser
   #   end
   #               
   #   # use an argname with commas to make a list,
-  #   # an array of values is passed to the block
-  #   psr.on('--list A,B,C') do |args|
+  #   # each arg is passed to the block separately
+  #   psr.on('--list A,B,C') do |arg|
   #     # ...
   #   end
   #
