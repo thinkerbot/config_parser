@@ -726,6 +726,22 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal %w{a b}, args
   end
   
+  def test_parse_list_assigns_defaults
+    c.add(:opt, ['x', 'y', 'z'])
+    args = c.parse %w{a b}
+    
+    assert_equal({:opt => ['x', 'y', 'z']}, c.config)
+    assert_equal %w{a b}, args
+  end
+  
+  def test_parse_list_overrides_defaults
+    c.add(:opt, ['x', 'y', 'z'])
+    args = c.parse %w{a --opt one --opt two --opt three b}
+    
+    assert_equal({:opt => ['one', 'two', 'three']}, c.config)
+    assert_equal %w{a b}, args
+  end
+  
   def test_parse_list_splits_multivalues
     c.add(:opt, [])
     args = c.parse %w{a --opt one --opt two,three b}

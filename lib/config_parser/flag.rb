@@ -32,6 +32,9 @@ class ConfigParser
     # A callback for processing values (must respond to call, or be nil)
     attr_reader :callback
     
+    # A tracking flag set to true when parse is called.
+    attr_reader :present
+    
     def initialize(attrs={})
       @key       = attrs[:key]
       @nest_keys = attrs[:nest_keys]
@@ -41,6 +44,7 @@ class ConfigParser
       @desc      = attrs[:desc]
       @hint      = attrs[:hint]
       @callback  = attrs[:callback]
+      reset
     end
     
     # Returns an array of flags mapping to self (ie [long, short]).
@@ -107,6 +111,7 @@ class ConfigParser
         nest_config[key] = value
       end
       
+      @present = true
       config
     end
     
@@ -117,6 +122,11 @@ class ConfigParser
       end if nest_keys
       
       config
+    end
+    
+    # Resets present to false.
+    def reset
+      @present = false
     end
     
     # Formats self as a help string for use on the command line.

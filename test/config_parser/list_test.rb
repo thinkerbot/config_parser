@@ -51,6 +51,18 @@ class ListTest < Test::Unit::TestCase
     assert_equal({'key' => ['a', 'b', 'c']}, config)
   end
   
+  def test_assign_clears_array_before_append_when_reset
+    opt = List.new :key => 'key'
+    config = {'key' => ['a', 'b', 'c']}
+    
+    opt.reset
+    opt.assign(config, ['x'])
+    opt.assign(config, ['y'])
+    opt.assign(config, ['z'])
+    
+    assert_equal({'key' => ['x', 'y', 'z']}, config)
+  end
+  
   def test_assign_nests_value_into_config_if_nest_keys_are_set
     opt = List.new :key => 'c', :nest_keys => ['a', 'b']
     config = {}

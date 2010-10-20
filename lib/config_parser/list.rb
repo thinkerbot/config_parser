@@ -31,10 +31,16 @@ class ConfigParser
     def assign(config, values=default)
       if key
         nest_config = nest(config)
+        
+        unless present
+          nest_config.delete(key)
+        end
+        
         array = (nest_config[key] ||= [])
         array.concat(values)
       end
       
+      @present = true
       config
     end
     

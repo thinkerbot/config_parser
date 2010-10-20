@@ -21,6 +21,7 @@ class FlagTest < Test::Unit::TestCase
     assert_equal nil, opt.short
     assert_equal nil, opt.desc
     assert_equal nil, opt.callback
+    assert_equal false, opt.present
   end
   
   def test_initialize_formats_long_flags
@@ -135,6 +136,24 @@ class FlagTest < Test::Unit::TestCase
   def test_assign_ignores_nest_keys_without_key
     opt = Flag.new :nest_keys => ['a', 'b']
     assert_equal({}, opt.assign({}))
+  end
+  
+  def test_asssign_sets_present_to_true
+    assert_equal false, opt.present
+    opt.assign({}, 'value')
+    assert_equal true, opt.present
+  end
+  
+  #
+  # reset test
+  #
+  
+  def test_reset_sets_present_to_false
+    opt.assign({}, 'value')
+    assert_equal true, opt.present
+    
+    opt.reset
+    assert_equal false, opt.present
   end
   
   #
