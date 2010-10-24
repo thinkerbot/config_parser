@@ -751,6 +751,29 @@ class ConfigParserTest < Test::Unit::TestCase
   end
   
   #
+  # reset test
+  #
+  
+  def test_reset_resets_options
+    option = c.add(:opt)
+    option.assign({}, nil)
+    assert_equal true, option.assigned
+    
+    c.reset
+    assert_equal false, option.assigned
+  end
+  
+  def test_reset_will_clear_configs_if_specified
+    c.config[:key] = 'value'
+    c.reset
+    assert_equal({}, c.config)
+    
+    c.config[:key] = 'value'
+    c.reset(:clear => false)
+    assert_equal({:key => 'value'}, c.config)
+  end
+  
+  #
   # to_s test
   #
   

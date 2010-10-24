@@ -20,13 +20,13 @@ class ConfigParser
   # The hash receiving configs.
   attr_accessor :config
   
-  # The argument to stop processing options
+  # The argument to stop processing options.
   attr_accessor :option_break
   
-  # Set to true to preserve the option break
+  # Set to true to preserve the option break.
   attr_accessor :preserve_option_break
   
-  # Set to true to assign config defaults on parse
+  # Set to true to assign config defaults on parse.
   attr_accessor :assign_defaults
   
   # Initializes a new ConfigParser and passes it to the block, if given.
@@ -282,6 +282,22 @@ class ConfigParser
     argv.replace(args)
     
     argv
+  end
+  
+  # Resets each option and clears the config (if specified).  Returns self.
+  def reset(options={})
+    options = {
+      :clear => true
+    }.merge(options)
+    
+    registry.each do |option|
+      if option.respond_to?(:reset)
+        option.reset
+      end
+    end
+    
+    config.clear if options[:clear]
+    self
   end
   
   # Converts the options and separators in self into a help string suitable
