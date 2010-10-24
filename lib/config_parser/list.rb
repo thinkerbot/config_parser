@@ -25,14 +25,14 @@ class ConfigParser
       split(value).collect {|val| super(val) }
     end
     
-    # Assigns the values to config by concatenating onto an array, rather than
-    # directly setting into config.  As usual, no value is assigned if key is
-    # not set.
-    def assign(config, values=default)
+    # Assigns the values to config.  Multiple calls to assign will concatenate
+    # (ie when assigned is true) new values onto the existing values.  As
+    # usual, no values are assigned if key is not set.  Returns config.
+    def assign(config, values)
       if key
         nest_config = nest(config)
         
-        unless present
+        unless assigned
           nest_config.delete(key)
         end
         
@@ -40,7 +40,7 @@ class ConfigParser
         array.concat(values)
       end
       
-      @present = true
+      @assigned = true
       config
     end
     

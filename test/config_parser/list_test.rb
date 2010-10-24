@@ -31,16 +31,16 @@ class ListTest < Test::Unit::TestCase
   # assign test
   #
   
-  def test_assign_sets_default_if_key_is_set
-    opt = List.new :key => 'key', :default => ['value']
-    assert_equal({'key' => ['value']}, opt.assign({}))
+  def test_assign_sets_values_if_key_is_set
+    opt = List.new :key => 'key'
+    assert_equal({'key' => ['value']}, opt.assign({}, ['value']))
   end
   
   def test_assign_does_nothing_if_key_is_not_set
-    assert_equal({}, opt.assign({}))
+    assert_equal({}, opt.assign({}, ['value']))
   end
   
-  def test_assign_appends_values_to_array
+  def test_multiple_assigns_append_new_values_to_existing
     opt = List.new :key => 'key'
     config = {}
     
@@ -51,7 +51,7 @@ class ListTest < Test::Unit::TestCase
     assert_equal({'key' => ['a', 'b', 'c']}, config)
   end
   
-  def test_assign_clears_array_before_append_when_reset
+  def test_assign_overwrites_existing_values_after_reset
     opt = List.new :key => 'key'
     config = {'key' => ['a', 'b', 'c']}
     
@@ -76,6 +76,6 @@ class ListTest < Test::Unit::TestCase
   
   def test_assign_ignores_nest_keys_without_key
     opt = List.new :nest_keys => ['a', 'b']
-    assert_equal({}, opt.assign({}))
+    assert_equal({}, opt.assign({}, ['value']))
   end
 end

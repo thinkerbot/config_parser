@@ -235,12 +235,8 @@ class ConfigParser
     argv = Shellwords.shellwords(argv) if argv.kind_of?(String)
     
     registry.each do |option|
-      if assign_defaults && option.respond_to?(:assign)
-        option.assign(config)
-      end
-      
-      if option.respond_to?(:reset)
-        option.reset
+      if assign_defaults && option.respond_to?(:assign_default)
+        option.assign_default(config)
       end
     end
     

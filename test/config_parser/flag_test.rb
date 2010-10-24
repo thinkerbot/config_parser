@@ -21,7 +21,7 @@ class FlagTest < Test::Unit::TestCase
     assert_equal nil, opt.short
     assert_equal nil, opt.desc
     assert_equal nil, opt.callback
-    assert_equal false, opt.present
+    assert_equal false, opt.assigned
   end
   
   def test_initialize_formats_long_flags
@@ -101,31 +101,41 @@ class FlagTest < Test::Unit::TestCase
   end
   
   #
+  # assign_default test
+  #
+  
+  def test_assign_default_sets_default_to_config_if_key_is_set
+    opt = Flag.new :key => 'key', :default => 'value'
+    assert_equal({'key' => 'value'}, opt.assign_default({}))
+  end
+  
+  def test_assign_default_will_assign_nil_default
+    opt = Flag.new :key => 'key'
+    assert_equal({'key' => nil}, opt.assign_default({}))
+  end
+  
+  def test_assign_default_resets_assigned_to_false
+    opt = Flag.new :key => 'key', :default => 'value'
+    opt.assign_default({})
+    assert_equal false, opt.assigned
+  end
+  
+  #
   # assign test
   #
   
-  def test_assign_sets_default_to_config_if_key_is_set
-    opt = Flag.new :key => 'key', :default => 'value'
-    assert_equal({'key' => 'value'}, opt.assign({}))
-  end
-  
-  def test_assign_sets_value_if_specified
-    opt = Flag.new :key => 'key', :default => 'value'
-    assert_equal({'key' => 'VALUE'}, opt.assign({}, 'VALUE'))
-  end
-  
-  def test_assign_will_assign_nil_default
+  def test_assign_sets_value_to_config_if_key_is_set
     opt = Flag.new :key => 'key'
-    assert_equal({'key' => nil}, opt.assign({}))
+    assert_equal({'key' => 'value'}, opt.assign({}, 'value'))
   end
   
   def test_assign_will_assign_nil_value
-    opt = Flag.new :key => 'key', :default => 'value'
+    opt = Flag.new :key => 'key'
     assert_equal({'key' => nil}, opt.assign({}, nil))
   end
   
   def test_assign_does_nothings_if_key_is_not_set
-    assert_equal({}, opt.assign({}))
+    assert_equal({}, opt.assign({}, 'value'))
   end
   
   def test_assign_nests_value_into_config_if_nest_keys_are_set
@@ -135,25 +145,25 @@ class FlagTest < Test::Unit::TestCase
   
   def test_assign_ignores_nest_keys_without_key
     opt = Flag.new :nest_keys => ['a', 'b']
-    assert_equal({}, opt.assign({}))
+    assert_equal({}, opt.assign({}, 'value'))
   end
   
-  def test_asssign_sets_present_to_true
-    assert_equal false, opt.present
+  def test_asssign_sets_assigned_to_true
+    assert_equal false, opt.assigned
     opt.assign({}, 'value')
-    assert_equal true, opt.present
+    assert_equal true, opt.assigned
   end
   
   #
   # reset test
   #
   
-  def test_reset_sets_present_to_false
+  def test_reset_sets_assigned_to_false
     opt.assign({}, 'value')
-    assert_equal true, opt.present
+    assert_equal true, opt.assigned
     
     opt.reset
-    assert_equal false, opt.present
+    assert_equal false, opt.assigned
   end
   
   #

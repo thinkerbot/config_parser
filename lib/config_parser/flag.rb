@@ -32,8 +32,10 @@ class ConfigParser
     # A callback for processing values (must respond to call, or be nil)
     attr_reader :callback
     
-    # A tracking flag set to true when parse is called.
-    attr_reader :present
+    # A tracking flag set to true when assign is called.  Useful when assign
+    # works differently for the first assignment than later assignments.  See
+    # reset.
+    attr_reader :assigned
     
     def initialize(attrs={})
       @key       = attrs[:key]
@@ -104,14 +106,24 @@ class ConfigParser
       callback ? callback.call(value) : value
     end
     
-    # Assign the value to the config hash, if key is set.  Returns config.
-    def assign(config, value=default)
+    # Assigns the default value into config and resets the assigned flag to
+    # false, such that the next assign behaves as if self has not put a value
+    # into config.  Returns config.
+    def assign_default(config)
+      assign(config, default)
+      reset
+      config
+    end
+    
+    # Assign the value to the config hash, if key is set, and flips assigned
+    # to true.  Returns config.
+    def assign(config, value)
       if key
         nest_config = nest(config)
         nest_config[key] = value
       end
       
-      @present = true
+      @assigned = true
       config
     end
     
@@ -124,9 +136,9 @@ class ConfigParser
       config
     end
     
-    # Resets present to false.
+    # Resets assigned to false.
     def reset
-      @present = false
+      @assigned = false
     end
     
     # Formats self as a help string for use on the command line.
