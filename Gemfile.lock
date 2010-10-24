@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    config_parser (0.3.1)
+    config_parser (0.3.3)
       lazydoc (~> 1.0)
 
 GEM

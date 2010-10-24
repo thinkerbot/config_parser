@@ -1,3 +1,9 @@
+== 0.3.3 / 2010-10-24
+
+* made options aware of whether or not they have assigned a value (fixes
+  a bug whereby lists would not override defaults)
+* added ability to specify a hint string
+
 == 0.3.2 / 2010-10-16
 
 * allow specification of any callback that responds to call
