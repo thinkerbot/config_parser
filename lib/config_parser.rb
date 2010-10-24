@@ -17,7 +17,7 @@ class ConfigParser
   # '--long' to the Option that handles them.
   attr_reader :options
   
-  # The hash receiving configs.
+  # The hash receiving parsed configs.
   attr_accessor :config
   
   # The argument to stop processing options.

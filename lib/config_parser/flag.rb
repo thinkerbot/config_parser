@@ -8,28 +8,28 @@ class ConfigParser
   class Flag
     include Utils
     
-    # The config key
+    # The config key.
     attr_reader :key
     
-    # The config nesting keys
+    # The config nesting keys.
     attr_reader :nest_keys
     
-    # The default value
+    # The default value.
     attr_reader :default
     
-    # The short flag mapping to self
+    # The short flag mapping to self.
     attr_reader :short 
     
-    # The long flag mapping to self
+    # The long flag mapping to self.
     attr_reader :long
     
-    # The description printed by to_s
+    # The description printed by to_s.
     attr_reader :desc
     
     # A hint printed by to_s, after desc.
     attr_reader :hint
     
-    # A callback for processing values (must respond to call, or be nil)
+    # A callback for processing values (must respond to call, or be nil).
     attr_reader :callback
     
     # A tracking flag set to true when assign is called.  Useful when assign

@@ -14,7 +14,7 @@ class ConfigParser
     # The argument name printed by to_s.
     attr_reader :arg_name
     
-    # Set to true to make the argument optional
+    # Set to true to make the argument optional.
     attr_reader :optional
     
     def initialize(attrs={})
