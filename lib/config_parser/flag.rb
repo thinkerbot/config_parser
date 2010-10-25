@@ -183,10 +183,10 @@ class ConfigParser
       case
       when hint.nil? && desc.nil?
         ''
-      when hint.nil?
+      when hint.nil? 
         desc.to_s
       else
-        "#{desc} (#{hint})"
+        "#{desc} (#{hint})".strip
       end
     end
     
