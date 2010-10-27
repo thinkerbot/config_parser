@@ -225,9 +225,9 @@ class ConfigParser
   #
   # If a string argv is provided, it will be splits into an array using
   # Shellwords.
-  def parse(argv=ARGV)
+  def parse(argv=ARGV, &block)
     argv = argv.dup unless argv.kind_of?(String)
-    parse!(argv)
+    parse!(argv, &block)
   end
   
   # Same as parse, but removes parsed args from argv.
@@ -281,7 +281,7 @@ class ConfigParser
     args.concat(argv)
     argv.replace(args)
     
-    argv
+    block_given? ? yield(argv, config) : argv
   end
   
   # Resets each option and clears the config (if specified).  Returns self.
