@@ -1,3 +1,8 @@
+== 0.5.0 / 2010-11-21
+
+* yield argv and config to block on parse, if given
+* remove leading whitespace from hint without desc
+
 == 0.3.3 / 2010-10-24
 
 * made options aware of whether or not they have assigned a value (fixes
