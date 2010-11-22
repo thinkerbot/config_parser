@@ -202,7 +202,6 @@ class ConfigParser
     attrs = args.last.kind_of?(Hash) ? args.pop : {}
     attrs = attrs.merge(:key => key, :default => default)
     args << attrs
-    
     on(*args, &block)
   end
   
@@ -328,7 +327,10 @@ class ConfigParser
   def new_option(argv, &block) # :nodoc:
     attrs = argv.last.kind_of?(Hash) ? argv.pop : {}
     attrs = parse_attrs(argv).merge(attrs)
+    
+    attrs[:hint] ||= guess_hint(attrs)
     attrs[:callback] = block if block
+    
     option_class(attrs).new(attrs)
   end
 end

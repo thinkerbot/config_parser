@@ -35,6 +35,9 @@ class ConfigParser
     #
     NEST = /\A--(.*):(.+)\z/
     
+    # The default split character for multiple values
+    DELIMITER = ','
+    
     # Turns the input into a short flag by prefixing '-' (as needed). Raises
     # an error if the input doesn't result in a short flag.   Nils are
     # returned directly.
@@ -162,7 +165,7 @@ class ConfigParser
           raise ArgumentError.new("invalid flag: #{arg.inspect}")
         end
       end
-
+      
       attrs
     end
     
@@ -208,6 +211,19 @@ class ConfigParser
       when false then :flag
       when Array then :list
       else :option
+      end
+    end
+    
+    def guess_hint(attrs)
+      default = attrs[:default]
+      
+      case default
+      when true, false, nil
+        nil
+      when Array
+        default.join(attrs[:delimiter] || DELIMITER)
+      else
+        default.to_s
       end
     end
   end

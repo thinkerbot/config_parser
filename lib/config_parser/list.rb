@@ -6,9 +6,6 @@ class ConfigParser
   # assigned to the same key.
   class List < Option
     
-    # The default split character for multiple values
-    DELIMITER = ','
-    
     # The delimiter on which to split single values into multiple values; use
     # nil to prevent splitting.
     attr_reader :delimiter
