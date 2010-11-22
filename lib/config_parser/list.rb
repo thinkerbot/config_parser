@@ -52,5 +52,11 @@ class ConfigParser
       else [obj]
       end
     end
+    
+    private
+    
+    def header_str # :nodoc:
+      "    #{short_str}#{long_str} [#{arg_name}]"
+    end
   end
 end
