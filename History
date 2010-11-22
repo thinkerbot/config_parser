@@ -1,3 +1,8 @@
+== 0.5.1 / 2010-11-21
+
+* added guessing of hints
+* added brackets to argname for list help
+
 == 0.5.0 / 2010-11-21
 
 * yield argv and config to block on parse, if given
