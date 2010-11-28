@@ -102,10 +102,10 @@ class ConfigParser
   end
   
   # Sorts options in the registry as specified by the block.  Groups of
-  # options as delimited by separators are sorted independently.  If no
-  # block is given, options are sorted by their long and short keys.
+  # options as delimited by separators are sorted independently.  If no block
+  # is given, options are sorted by their long and short keys.
   def sort_opts!(&block)
-    block ||= lambda {|option| option.long || option.short }
+    block ||= lambda {|option| (option.long || option.short).to_s.sub(/^-+/, '') }
     
     splits = []
     current = []
