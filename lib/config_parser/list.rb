@@ -56,7 +56,7 @@ class ConfigParser
     private
     
     def header_str # :nodoc:
-      "    #{short_str}#{long_str} [#{arg_name}]"
+      "    #{short_str}#{long_str} #{arg_name}..."
     end
   end
 end

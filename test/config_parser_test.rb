@@ -798,7 +798,7 @@ class ConfigParserTest < Test::Unit::TestCase
 specials:
         --[no-]switch
         --flag
-        --list [LIST]                (1,2,3)
+        --list LIST...               (1,2,3)
 }
     assert_equal expected, "\n" + c.to_s
   end
