@@ -221,7 +221,8 @@ class ConfigParser
       when true, false, nil
         nil
       when Array
-        default.join(attrs[:delimiter] || DELIMITER)
+        hint = default.join(attrs[:delimiter] || DELIMITER)
+        hint.empty? ? nil : hint
       else
         default.to_s
       end
