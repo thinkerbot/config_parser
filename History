@@ -1,3 +1,8 @@
+== 0.5.3 / 2010-12-04
+
+* altered targname formatting for list to use an elipsis rather than brackets
+* updated list to unassign using ASET, not delete
+
 == 0.5.2 / 2010-11-27
 
 * fixed sorting of mixed long and short options
