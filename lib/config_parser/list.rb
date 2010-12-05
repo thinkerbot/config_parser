@@ -30,7 +30,7 @@ class ConfigParser
         nest_config = nest(config)
         
         unless assigned
-          nest_config.delete(key)
+          nest_config[key] = []
         end
         
         array = (nest_config[key] ||= [])
