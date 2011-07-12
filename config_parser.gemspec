@@ -12,15 +12,15 @@ Gem::Specification.new do |s|
   s.require_path = 'lib'
   s.rubyforge_project = ''
   s.has_rdoc = true
-  s.rdoc_options.concat %W{--main README -S -N --title ConfigParser}
+  s.rdoc_options.concat %W{--main README.rdoc -S -N --title ConfigParser}
   
   # dependencies
   s.add_development_dependency('bundler', '~> 1.0')
   
   # list extra rdoc files here.
   s.extra_rdoc_files = %W{
-    History
-    README
+    History.rdoc
+    README.rdoc
     MIT-LICENSE
   }
   

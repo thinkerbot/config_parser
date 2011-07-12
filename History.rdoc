@@ -1,3 +1,9 @@
+== 0.5.4 / 2011-07-11
+
+Misc cleanup to the README and project structure. Also:
+
+* guess no hint for empty array
+
 == 0.5.3 / 2010-12-04
 
 * altered targname formatting for list to use an elipsis rather than brackets
