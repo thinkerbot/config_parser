@@ -13,41 +13,7 @@ integrates well with libraries like
 
 == Usage
 
-ConfigParser can be used much like OptionParser, where the parser can set
-values into a config hash.
-
-  parser = ConfigParser.new
-  parser.on '--option OPTION', 'a standard option' do |value|
-    parser[:option] = value
-  end
-  
-  parser.on '--[no-]switch', 'a switch' do |value|
-    parser[:switch] = value
-  end
-  
-  parser.on '--flag', 'a flag' do
-    parser[:flag] = true
-  end
-  
-  parser.parse 'a b --flag --switch --option value c'
-  # => ['a', 'b', 'c']
-  
-  parser.config
-  # => {
-  #   :option => 'value',
-  #   :switch => true,
-  #   :flag   => true
-  # }
-  
-  parser.to_s
-  # => %q{
-  #     --option OPTION             a standard option
-  #     --[no-]switch               a switch
-  #     --flag                      a flag
-  # }
-
-ConfigParser formalizes the pattern of setting values into a config hash as
-they occur, and adds the ability to specify default values.
+Define options and their default values using +add+:
 
   parser = ConfigParser.new
   parser.add :option, 'default'      # regular option with a default value
@@ -66,10 +32,36 @@ they occur, and adds the ability to specify default values.
   #   :list   => ['x', 'y', 'z']
   # }
 
-Options can be defined using arguments just like `on`, or with an attributes
-hash. Notably, the key for the config does not have to correspond to the name
-of the option (although by default it does). A block can be given to process
-values before they are set as configs.
+The OptionParser +on+ syntax may also be used, if desired (most syntax
+variations will work). Use the parser as if it were the config hash:
+
+  parser = ConfigParser.new
+  parser.on '--option OPTION', 'a standard option' do |value|
+    parser[:option] = value
+  end
+
+  parser.on '--[no-]switch', 'a switch' do |value|
+    parser[:switch] = value
+  end
+
+  parser.on '--flag', 'a flag' do
+    parser[:flag] = true
+  end
+
+  parser.parse 'a b --flag --switch --option value c'
+  # => ['a', 'b', 'c']
+
+  parser.config
+  # => {
+  #   :option => 'value',
+  #   :switch => true,
+  #   :flag   => true
+  # }
+
+Added options may be further defined using arguments just like +on+ or with an
+attributes hash. Notably, the key for the config does not have to correspond
+to the option (although by default it does). As you may expect a block can be
+given to process values before they are set as configs.
 
   parser = ConfigParser.new
   
