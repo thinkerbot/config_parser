@@ -9,7 +9,7 @@ ConfigParser is an analogue of
 formalizes the pattern of setting parsed options into a hash. ConfigParser
 uses a similar, simplified declaration syntax and provides an API that
 integrates well with libraries like
-{Configurable}[http://tap.rubyforge.org/configurable].
+{Configurable}[http://github.com/thinkerbot/configurable].
 
 == Usage
 
@@ -17,79 +17,84 @@ ConfigParser can be used much like OptionParser, where the parser can set
 values into a config hash.
 
   parser = ConfigParser.new
-  parser.on '-s', '--long LONG', 'a standard option' do |value|
-    parser[:long] = value
+  parser.on '--option OPTION', 'a standard option' do |value|
+    parser[:option] = value
   end
- 
+  
   parser.on '--[no-]switch', 'a switch' do |value|
     parser[:switch] = value
   end
-
+  
   parser.on '--flag', 'a flag' do
     parser[:flag] = true
   end
   
-  parser.parse('a b --long arg --switch --flag c')
+  parser.parse 'a b --flag --switch --option value c'
   # => ['a', 'b', 'c']
   
-  parser.config     
-  # => {:long => 'arg', :switch => true, :flag => true}
+  parser.config
+  # => {
+  #   :option => 'value',
+  #   :switch => true,
+  #   :flag   => true
+  # }
   
   parser.to_s
   # => %q{
-  #     -s, --long LONG             a standard option
+  #     --option OPTION             a standard option
   #     --[no-]switch               a switch
   #     --flag                      a flag
   # }
 
-ConfigParser formalizes this pattern of setting values into a config hash as
+ConfigParser formalizes the pattern of setting values into a config hash as
 they occur, and adds the ability to specify default values.
 
   parser = ConfigParser.new
-  parser.add :flag, false            # false as a default makes a --flag
+  parser.add :option, 'default'      # regular option with a default value
   parser.add :switch, true           # true makes a --[no-]switch
+  parser.add :flag, false            # false as a default makes a --flag
   parser.add :list, []               # an array makes a list-style option
-  parser.add :opt, 'default'         # all others make an ordinary option
-
-  parser.parse('a b c')              # => ['a', 'b', 'c']
-  parser.config
-  # => {
-  #   :flag   => false,
-  #   :switch => true,
-  #   :list   => [],
-  #   :opt    => 'default'
-  # }
   
-  args = %w{a b --flag --no-switch --list one --list two,three --opt value c}
-  parser.parse(args)                 # => ['a', 'b', 'c']
-  parser.config
-  # => {
-  #   :flag   => true,
-  #   :switch => false,
-  #   :list   => ['one', 'two', 'three'],
-  #   :opt    => 'value'
-  # }
-
-Options can be defined using arguments just like on, or with an attributes
-hash. A block can be given to process values before they are set as configs.
-
-  parser = ConfigParser.new
-  parser.add(:x, nil, '--one', 'by args') {|value| value.upcase }
-  parser.add(:y, nil, :long => 'two', :desc => 'by hash')
-  
-  parser.parse('a b --one value --two value c')
+  parser.parse 'a b --flag --list x --list y,z c'
   # => ['a', 'b', 'c']
   
   parser.config
-  # => {:x => 'VALUE', :y => 'value'}
+  # => {
+  #   :option => 'default',
+  #   :switch => true,
+  #   :flag   => true,
+  #   :list   => ['x', 'y', 'z']
+  # }
+
+Options can be defined using arguments just like `on`, or with an attributes
+hash. Notably, the key for the config does not have to correspond to the name
+of the option (although by default it does). A block can be given to process
+values before they are set as configs.
+
+  parser = ConfigParser.new
+  
+  # use args to define the option
+  parser.add(:x, nil, '-o', '--one')
+  
+  # use an options hash to define the option
+  parser.add(:y, nil, :short => 't', :long => 'two')
+  
+  # use a block to process the values
+  parser.add(:z, nil, :long => 'three') {|value| value.upcase }
+  
+  parser.parse('a b --one uno --two dos --three tres c')
+  # => ['a', 'b', 'c']
+  
+  parser.config
+  # => {:x => 'uno', :y => 'dos', :z => 'TRES'}
 
 == Installation
 
-ConfigParser is available as a gem via {Gemcutter}[http://rubygems.org/gems/config_parser].
+ConfigParser is available as a gem[http://rubygems.org/gems/config_parser].
 
   % gem install config_parser
 
 == Info
 
-Copyright (c) 2010, Simon Chiang
+Developer:: {Simon Chiang}[http://github.com/thinkerbot]
 License:: {MIT-Style}[link:files/MIT-LICENSE.html]

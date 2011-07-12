@@ -4,8 +4,8 @@ require 'config_parser'
 class ReadmeTest < Test::Unit::TestCase
   def test_documentation
     parser = ConfigParser.new
-    parser.on '-s', '--long LONG', 'a standard option' do |value|
-      parser[:long] = value
+    parser.on '--option OPTION', 'a standard option' do |value|
+      parser[:option] = value
     end
 
     parser.on '--[no-]switch', 'a switch' do |value|
@@ -17,13 +17,17 @@ class ReadmeTest < Test::Unit::TestCase
     end
 
     expected = ['a', 'b', 'c']
-    assert_equal expected, parser.parse('a b --long arg --switch --flag c')
+    assert_equal expected, parser.parse('a b --flag --switch --option value c')
 
-    expected = {:long => 'arg', :switch => true, :flag => true}
+    expected = {
+      :option => 'value',
+      :switch => true,
+      :flag   => true
+    }
     assert_equal expected, parser.config
 
     expected = %q{
-    -s, --long LONG                  a standard option
+        --option OPTION              a standard option
         --[no-]switch                a switch
         --flag                       a flag
 }
@@ -32,42 +36,39 @@ class ReadmeTest < Test::Unit::TestCase
     #
 
     parser = ConfigParser.new
-    parser.add :flag, false   
-    parser.add :switch, true  
-    parser.add :list, []      
-    parser.add :opt, 'default'
+    parser.add :option, 'default'      # regular option with a default value
+    parser.add :switch, true           # true makes a --[no-]switch
+    parser.add :flag, false            # false as a default makes a --flag
+    parser.add :list, []               # an array makes a list-style option
 
-    assert_equal ['a', 'b', 'c'], parser.parse('a b c')
-    
+    expected = ['a', 'b', 'c']
+    assert_equal expected, parser.parse('a b --flag --list x --list y,z c')
+
     expected = {
-      :flag   => false,
+      :option => 'default',
       :switch => true,
-      :list   => [],
-      :opt    => 'default'
-    }
-    assert_equal expected, parser.config
-
-    args = %w{a b --flag --no-switch --list one --list two,three --opt value c}
-    assert_equal ['a', 'b', 'c'], parser.parse(args)
-    
-    expected = {
       :flag   => true,
-      :switch => false,
-      :list   => ['one', 'two', 'three'],
-      :opt    => 'value'
+      :list   => ['x', 'y', 'z']
     }
     assert_equal expected, parser.config
-
+    
     #
 
     parser = ConfigParser.new
-    parser.add(:x, nil, '--one', 'by args') {|value| value.upcase }
-    parser.add(:y, nil, :long => 'two', :desc => 'by hash')
+
+    # use args to define the option
+    parser.add(:x, nil, '-o', '--one')
+
+    # use an options hash to define the option
+    parser.add(:y, nil, :short => 't', :long => 'two')
+
+    # use a block to process the values
+    parser.add(:z, nil, :long => 'three') {|value| value.upcase }
 
     expected = ['a', 'b', 'c']
-    assert_equal(expected, parser.parse('a b --one value --two value c'))
+    assert_equal(expected, parser.parse('a b --one uno --two dos --three tres c'))
 
-    expected = {:x => 'VALUE', :y => 'value'}
+    expected = {:x => 'uno', :y => 'dos', :z => 'TRES'}
     assert_equal(expected, parser.config)
   end
 end
