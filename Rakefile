@@ -51,7 +51,7 @@ task :rdoc do
   options = spec.rdoc_options.join(' ')
   
   Dir.chdir File.expand_path('..', __FILE__) do
-    FileUtils.rm_r 'rdoc'
+    FileUtils.rm_r('rdoc') if File.exists?('rdoc')
     sh "rdoc -o rdoc #{options} '#{files.join("' '")}'"
   end
 end
