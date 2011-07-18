@@ -47,6 +47,13 @@ class FlagTest < Test::Unit::TestCase
     assert_equal '--nest:ed:long', opt.long
   end
 
+  def test_initialize_sets_short_if_key_is_a_single_char_without_nesting
+    opt = Flag.new :key => :s
+    assert_equal :s, opt.key
+    assert_equal nil, opt.long
+    assert_equal '-s', opt.short
+  end
+
   def test_initialize_raises_error_for_invalid_long_flag
     err = assert_raises(ArgumentError) { Flag.new(:long => '') }
     assert_equal "invalid long flag: --", err.message

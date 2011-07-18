@@ -41,7 +41,7 @@ class ConfigParser
       @key       = attrs[:key]
       @nest_keys = attrs[:nest_keys]
       @default   = attrs[:default]
-      @short     = shortify(attrs[:short])
+      @short     = shortify(attrs.has_key?(:short) ? attrs[:short] : default_short)
       @long      = longify(attrs.has_key?(:long) ? attrs[:long] : default_long)
       @desc      = attrs[:desc]
       @hint      = attrs[:hint]
@@ -191,7 +191,12 @@ class ConfigParser
     end
 
     def default_long # :nodoc:
+      return nil if default_short
       nest_keys ? (nest_keys + [key]).join(':') : key
+    end
+
+    def default_short # :nodoc:
+      key.to_s.length == 1 && nest_keys.nil? ? key : nil
     end
   end
 end

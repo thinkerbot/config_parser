@@ -330,6 +330,13 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal '-s', opt.short
   end
 
+  def test_add_guesses_short_flag_for_single_characters
+    opt = c.add(:k, 'val')
+
+    assert_equal nil, opt.long
+    assert_equal '-k', opt.short
+  end
+
   def test_add_parses_args_like_on
     opt = c.add(:key, 'value', '--long', '-s', :option_type => :list)
     assert_equal '--long', opt.long
