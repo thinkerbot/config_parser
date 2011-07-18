@@ -243,17 +243,17 @@ class ConfigParser
     while !argv.empty?
       arg = argv.shift
   
-      # determine if the arg is an option
-      unless option?(arg)
-        args << arg
-        next
-      end
-      
       # add the remaining args and break
       # for the option break
       if option_break === arg
         argv.unshift(arg) if preserve_option_break
         break
+      end
+      
+      # determine if the arg is an option
+      unless option?(arg)
+        args << arg
+        next
       end
       
       flag, value = arg, nil

@@ -529,6 +529,14 @@ class ConfigParserTest < Test::Unit::TestCase
     assert_equal %w{a --opt b}, args
   end
   
+  def test_parse_checks_option_break_before_checking_option_format
+    c.on('--opt')
+    
+    c.option_break = /b/
+    args = c.parse %w{a b --opt c}
+    assert_equal %w{a --opt c}, args
+  end
+  
   def test_parse_handles_non_string_inputs
     value_in_block = nil
     c.on('--opt VALUE') {|value| value_in_block = value}
