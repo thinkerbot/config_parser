@@ -20,10 +20,10 @@ Define options and their default values using +add+:
   parser.add :switch, true           # true makes a --[no-]switch
   parser.add :flag, false            # false as a default makes a --flag
   parser.add :list, []               # an array makes a list-style option
-  
+
   parser.parse 'a b --flag --list x --list y,z c'
   # => ['a', 'b', 'c']
-  
+
   parser.config
   # => {
   #   :option => 'default',
@@ -64,19 +64,19 @@ to the option (although by default it does). As you may expect a block can be
 given to process values before they are set as configs.
 
   parser = ConfigParser.new
-  
+
   # use args to define the option
   parser.add(:x, nil, '-o', '--one')
-  
+
   # use an options hash to define the option
   parser.add(:y, nil, :short => 't', :long => 'two')
-  
+
   # use a block to process the values
   parser.add(:z, nil, :long => 'three') {|value| value.upcase }
-  
+
   parser.parse('a b --one uno --two dos --three tres c')
   # => ['a', 'b', 'c']
-  
+
   parser.config
   # => {:x => 'uno', :y => 'dos', :z => 'TRES'}
 

@@ -1,24 +1,24 @@
 class ConfigParser
-  
+
   # A medly of methods used throughout the ConfigParser classes.
   module Utils
     module_function
-    
+
     # A format string used by to_s
     LINE_FORMAT = "%-36s %-43s"
-    
+
     # The default option break
     OPTION_BREAK = "--"
-    
+
     # Matches an option (long or short)
     OPTION = /\A-./
-    
+
     # Matches a long flag
     LONG_FLAG = /\A--.+\z/
 
     # Matches a short flag
     SHORT_FLAG = /\A-.\z/
-    
+
     # Matches a switch option (ex: '--[no-]opt', '--nest:[no-]opt'). After the
     # match:
     #   
@@ -27,17 +27,17 @@ class ConfigParser
     #   $3:: the long flag name ('opt')
     #
     SWITCH = /\A--(.*?)\[(.*?)-\](.+)\z/
-    
+
     # Matches a nest option (ex: '--nest:opt').  After the match:
     #
     #   $1:: the nesting prefix ('nest')
     #   $2:: the long option ('long')
     #
     NEST = /\A--(.*):(.+)\z/
-    
+
     # The default split character for multiple values
     DELIMITER = ','
-    
+
     # Turns the input into a short flag by prefixing '-' (as needed). Raises
     # an error if the input doesn't result in a short flag.   Nils are
     # returned directly.
@@ -47,14 +47,14 @@ class ConfigParser
     #
     def shortify(str)
       return nil if str.nil?
-  
+
       str = str.to_s
       str = "-#{str}" unless option?(str)
-      
+
       unless str =~ SHORT_FLAG
         raise ArgumentError, "invalid short flag: #{str}"
       end
-      
+
       str
     end
 
@@ -67,17 +67,17 @@ class ConfigParser
     #
     def longify(str)
       return nil if str.nil?
-  
+
       str = str.to_s
       str = "--#{str}" unless option?(str)
-      
+
       unless str =~ LONG_FLAG
         raise ArgumentError, "invalid long flag: #{str}"
       end
-      
+
       str
     end
-    
+
     # Adds a prefix onto the last nested segment of a long option.
     #
     #   prefix_long('--opt', 'no-')         # => '--no-opt'
@@ -89,25 +89,25 @@ class ConfigParser
       switch[-1] = "#{prefix}#{switch[-1]}"
       "--#{switch.join(':')}"
     end
-    
+
     # Returns true if the object is a string and matches OPTION.
     def option?(obj)
       obj.kind_of?(String) && obj =~ OPTION ? true : false
     end
-    
+
     # Shifts and returns the first argument off of argv if it is an argument
     # (rather than an option) or returns the default value.
     def next_arg(argv)
       option?(argv.at(0)) ? nil : argv.shift
     end
-    
+
     # A wrapping algorithm slightly modified from:
     # http://blog.macromates.com/2006/wrapping-text-with-regular-expressions/
     def wrap(line, cols=80, tabsize=2)
       line = line.gsub(/\t/, " " * tabsize) unless tabsize == nil
       line.gsub(/(.{1,#{cols}})( +|$\r?\n?)|(.{1,#{cols}})/, "\\1\\3\n").split(/\s*?\n/)
     end
-    
+
     # Parses the argv into an attributes hash for initializing an option.
     # Heuristics are used to infer what an argument implies.
     #  
@@ -129,7 +129,7 @@ class ConfigParser
     # arg_name with a switch) can be detected... others not so much.
     def parse_attrs(argv)
       attrs={}
-      
+
       argv.each do |arg|
         unless option?(arg)
           attrs[:desc] = arg
@@ -137,7 +137,7 @@ class ConfigParser
         end
 
         flag, arg_name = arg.split(/\s+/, 2)
-        
+
         if flag =~ NEST
           attrs[:nest_keys] = $1.split(':')
         end
@@ -150,7 +150,7 @@ class ConfigParser
         when SWITCH
           attrs[:long] = "--#{$1}#{$3}"
           attrs[:prefix] = $2
-          
+
           if arg_name
             raise ArgumentError, "arg_name specified for switch: #{arg_name}"
           end
@@ -165,10 +165,10 @@ class ConfigParser
           raise ArgumentError.new("invalid flag: #{arg.inspect}")
         end
       end
-      
+
       attrs
     end
-    
+
     # Guesses an option type based on the attrs.
     #
     #   if...            then...
@@ -190,12 +190,12 @@ class ConfigParser
         :flag
       end
     end
-    
+
     # Guesses :list if the arg_name has a comma, or nil.
     def guess_option_type_by_arg_name(arg_name)
       arg_name.to_s.include?(',') ? :list : nil
     end
-    
+
     # Guesses an option type based on a value.
     #
     #   if...            then...
@@ -213,10 +213,10 @@ class ConfigParser
       else :option
       end
     end
-    
+
     def guess_hint(attrs)
       default = attrs[:default]
-      
+
       case default
       when true, false, nil
         nil

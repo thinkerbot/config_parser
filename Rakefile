@@ -21,18 +21,18 @@ task :manifest do
     files[File.expand_path(file)] = [File.exists?(file), file]
     files
   end
-  
+
   # gather non-rdoc/pkg files for the project
   # and add to the files list if they are not
   # included already (marking by the absence
   # of a label)
   Dir.glob('**/*').each do |file|
     next if file =~ /^(rdoc|pkg|test|coverage|benchmark|.*\.rbc)/ || File.directory?(file)
-    
+
     path = File.expand_path(file)
     files[path] = ['', file] unless files.has_key?(path)
   end
-  
+
   # sort and output the results
   files.values.sort_by {|exists, file| file }.each do |entry| 
     puts '%-5s %s' % entry
@@ -49,7 +49,7 @@ task :rdoc do
   files =  spec.files.select {|file| File.extname(file) == '.rb' }
   files += spec.extra_rdoc_files
   options = spec.rdoc_options.join(' ')
-  
+
   Dir.chdir File.expand_path('..', __FILE__) do
     FileUtils.rm_r('rdoc') if File.exists?('rdoc')
     sh "rdoc -o rdoc #{options} '#{files.join("' '")}'"
@@ -63,7 +63,7 @@ end
 desc 'Bundle dependencies'
 task :bundle do
   output = `bundle check 2>&1`
-  
+
   unless $?.to_i == 0
     puts output
     sh "bundle install 2>&1"
@@ -85,7 +85,7 @@ task :default => :test
 desc 'Run the tests'
 task :test => :bundle do
   puts "Using #{current_ruby}"
-  
+
   tests = Dir.glob('test/**/*_test.rb')
   if ENV['RCOV'] == 'true'
     FileUtils.rm_rf File.expand_path('../coverage', __FILE__)
