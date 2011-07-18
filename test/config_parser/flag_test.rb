@@ -209,4 +209,11 @@ class FlagTest < Test::Unit::TestCase
 
     assert_equal expected, "\n#{opt.to_s}"
   end
+
+  def test_to_s_options_for_head_size_and_width
+    opt = Flag.new(:long => 'long', :short => 's', :desc => "description of key")
+    expected = %q{
+    -s, --long  description of key                }
+    assert_equal expected, "\n#{opt.to_s(:head_size => 15, :width => 50)}"
+  end
 end

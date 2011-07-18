@@ -141,17 +141,24 @@ class ConfigParser
       @assigned = false
     end
 
-    # Formats self as a help string for use on the command line.
-    def to_s
-      lines = wrap(desc_str, 43)
+    # Formats self as a help string for use on the command line (deprecated
+    # for that use, see format instead).
+    def to_s(opts={})
+      width     = opts[:width] || 80
+      head_size = opts[:head_size] || (width * 0.45).to_i
+      desc_size = width - head_size - 1
+
+      format = "%-#{head_size}s %-#{desc_size}s"
+
+      lines  = wrap(desc_str, desc_size)
 
       header = header_str
-      header = header.length > 36 ? header.ljust(80) : (LINE_FORMAT % [header, lines.shift])
+      header = header.length > head_size ? header.ljust(width) : (format % [header, lines.shift])
 
       if lines.empty?
         header
       else
-        lines.collect! {|line| LINE_FORMAT % [nil, line] }
+        lines.collect! {|line| format % [nil, line] }
         "#{header}\n#{lines.join("\n")}"
       end
     end

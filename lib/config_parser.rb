@@ -301,9 +301,10 @@ class ConfigParser
 
   # Converts the options and separators in self into a help string suitable
   # for display on the command line.
-  def to_s
+  def to_s(opts={})
     @registry.collect do |option|
-      option.to_s.rstrip
+      str = option.kind_of?(Flag) ? option.to_s(opts) : option.to_s
+      str.rstrip
     end.join("\n") + "\n"
   end
 

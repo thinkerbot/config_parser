@@ -818,6 +818,14 @@ specials:
     assert_equal expected, "\n" + c.to_s
   end
 
+  def test_to_s_allows_head_size_to_be_adjusted
+    c.on('--opt OPT', '-o', 'desc')
+    expected = %Q{
+    -o, --opt OPT    desc
+}
+    assert_equal expected, "\n" + c.to_s(:head_size => 20)
+  end
+  
   def test_to_s_for_options_without_long
     c.add('flag', false, :long => nil, :short => :f, :desc => 'desc')
     c.add('opt', nil, :long => nil, :short => :o, :arg_name => 'OPT', :desc => 'desc')

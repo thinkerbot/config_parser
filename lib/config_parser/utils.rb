@@ -4,9 +4,6 @@ class ConfigParser
   module Utils
     module_function
 
-    # A format string used by to_s
-    LINE_FORMAT = "%-36s %-43s"
-
     # The default option break
     OPTION_BREAK = "--"
 
