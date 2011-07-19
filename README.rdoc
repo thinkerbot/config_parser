@@ -86,6 +86,16 @@ ConfigParser is available as a gem[http://rubygems.org/gems/config_parser].
 
   % gem install config_parser
 
+== Development
+
+To get started, checkout the code from GitHub[http://github.com/thinkerbot/config_parser] and run the tests:
+
+  git clone git://github.com/thinkerbot/config_parser.git
+  cd config_parser
+  rake test
+
+Please report any issues {here}[http://github.com/thinkerbot/config_parser/issues].
+
 == Info
 
 Developer:: {Simon Chiang}[http://github.com/thinkerbot]
