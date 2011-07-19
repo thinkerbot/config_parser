@@ -1,3 +1,12 @@
+== 0.5.5 / 2011-07-18
+
+* [issue #3] added options to to_s to allow changes to the option/desc columns 
+  widths
+* [issue #4] made parser check for option_break such that breaks on non-option 
+  args is possible
+* [issue #5] single-character keys now default to a short rather than long 
+  option
+
 == 0.5.4 / 2011-07-11
 
 Misc cleanup to the README and project structure. Also:
